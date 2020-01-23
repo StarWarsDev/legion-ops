@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@material-ui/core';
 import logo from './logo.svg';
 import './App.css';
 import { useAppStore } from './AppContext';
@@ -8,29 +9,16 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-
-        <p>Authenticated? {state.user.authenticated ? "true" : "false"} {state.user.username}</p>
-        <button onClick={() => dispatch({
+        <p>Authenticated? {state.user.authenticated ? "true" : "false"}</p>
+        <Button variant="contained" color="primary" onClick={() => dispatch({
           type: "authenticated",
           user: {
             username: state.user.authenticated ? "" : "heylookafakeusername",
             authenticated: !state.user.authenticated
           }
         })}>
-          Fake {state.user.authenticated ? "Logout" : "Login"}
-        </button>
+          {state.user.authenticated ? `Logout: ${state.user.username}` : "Login"}
+        </Button>
       </header>
     </div>
   );
