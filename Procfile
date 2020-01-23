@@ -1,1 +1,1 @@
-web: bin/legion-ops
+web: legion-ops
