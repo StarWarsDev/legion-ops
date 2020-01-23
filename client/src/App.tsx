@@ -9,6 +9,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
+        <h1>A super fake login screen.</h1>
         <p>Authenticated? {state.user.authenticated ? "true" : "false"}</p>
         <Button variant="contained" color="primary" onClick={() => dispatch({
           type: "authenticated",
