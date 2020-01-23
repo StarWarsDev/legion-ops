@@ -1,8 +1,10 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { useAppStore } from './AppContext';
 
 const App: React.FC = () => {
+  const { state, dispatch } = useAppStore();
   return (
     <div className="App">
       <header className="App-header">
@@ -18,6 +20,17 @@ const App: React.FC = () => {
         >
           Learn React
         </a>
+
+        <p>Authenticated? {state.user.authenticated ? "true" : "false"} {state.user.username}</p>
+        <button onClick={() => dispatch({
+          type: "authenticated",
+          user: {
+            username: state.user.authenticated ? "" : "heylookafakeusername",
+            authenticated: !state.user.authenticated
+          }
+        })}>
+          Fake {state.user.authenticated ? "Logout" : "Login"}
+        </button>
       </header>
     </div>
   );
