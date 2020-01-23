@@ -1,21 +1,24 @@
-FROM golang as server
-ADD . /src
+FROM golang:1.13-alpine as server
 WORKDIR /src
-RUN go mod download
-RUN go build .
+COPY . .
+RUN go build -v .
 
 FROM node as client
 WORKDIR /src
-COPY --from=server /src/client/ ./
+COPY --from=server /src/client .
 RUN yarn
 RUN yarn build
 
 FROM alpine
-WORKDIR /app
+
+ENV CLIENT_FILES_PATH /app/client/build
+
 RUN apk --no-cache add ca-certificates
-COPY --from=server /src/legion-ops ./legion-ops
-COPY --from=client /src/build/ ./client/build/
-RUN chmod +x /app/legion-ops
-RUN apk update && apk upgrade && apk add --no-cache ca-certificates && update-ca-certificates 2>/dev/null || true
+COPY --from=server /src/legion-ops /bin
+COPY --from=client /src/build/ /app/client/build/
+RUN apk update \
+  && apk upgrade \
+  && apk add --no-cache ca-certificates \
+  && update-ca-certificates 2>/dev/null || true
 EXPOSE 5000
-CMD ["/bin/sh", "-c", "./legion-ops"]
+CMD ["/bin/legion-ops"]
