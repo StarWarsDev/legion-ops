@@ -24,6 +24,11 @@ func main() {
 		})
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+
 	// Start and run the server
-	router.Run(":5000")
+	router.Run(":" + port)
 }
