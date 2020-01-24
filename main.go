@@ -1,39 +1,35 @@
 package main
 
 import (
-	"net/http"
+	"flag"
+	"log"
 	"os"
+	"time"
 
-	"github.com/gin-gonic/contrib/static"
-	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Print(err.Error())
+	}
+}
+
 func main() {
-	// Set the router as the default one shipped with Gin
-	router := gin.Default()
-
-	// Serve frontend static files
-	localFilePath := os.Getenv("CLIENT_FILES_PATH")
-	if localFilePath == "" {
-		localFilePath = "./client/build"
-	}
-	router.Use(static.Serve("/", static.LocalFile(localFilePath, true)))
-
-	// Setup route group for the API
-	api := router.Group("/api")
-	{
-		api.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "pong",
-			})
-		})
-	}
+	var wait time.Duration
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5000"
 	}
 
-	// Start and run the server
-	router.Run(":" + port)
+	localFilePath := os.Getenv("CLIENT_FILES_PATH")
+	if localFilePath == "" {
+		localFilePath = "./client/build"
+	}
+
+	StartServer(port, localFilePath, wait)
 }
