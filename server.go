@@ -28,7 +28,11 @@ import (
 )
 
 func StartServer(port, localFilePath string, wait time.Duration) {
-	store := sessions.NewCookieStore([]byte("USE_A_BETTER_SECRET"))
+	storeSalt := os.Getenv("STORE_SALT")
+	if storeSalt == "" {
+		storeSalt = "LOCAL_DEV"
+	}
+	store := sessions.NewCookieStore([]byte(storeSalt))
 	gob.Register(map[string]interface{}{})
 
 	middlewareFuncs := middlewares.New(store)
