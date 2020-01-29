@@ -10,3 +10,6 @@ build-go:
 
 clean:
 	rm -rf client/build
+
+regenerate:
+	go run github.com/99designs/gqlgen -v

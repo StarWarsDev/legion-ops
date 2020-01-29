@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"time"
 
+	gqlhandler "github.com/99designs/gqlgen/handler"
 	"github.com/StarWarsDev/legion-ops/routes/login"
 
 	"github.com/StarWarsDev/legion-ops/routes/logout"
@@ -46,6 +47,11 @@ func StartServer(port, localFilePath string, wait time.Duration) {
 	r.HandleFunc("/login", loginHandlers.HandleLogin)
 	r.HandleFunc("/logout", logout.Handler)
 	r.HandleFunc("/callback", callbackHandlers.HandleCallback)
+
+	r.Handle("/graphical", gqlhandler.Playground("GraphQL playground", "/graphql"))
+	r.Handle("/graphql", gqlhandler.GraphQL(NewExecutableSchema(Config{
+		Resolvers: &Resolver{},
+	})))
 
 	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
