@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"errors"
+	"encoding/json"
 	"net/http"
 )
 
@@ -14,7 +14,9 @@ func (f *MiddlewareFuncs) IsAuthenticated(w http.ResponseWriter, r *http.Request
 	}
 
 	if _, ok := session.Values["profile"]; !ok {
-		http.Error(w, errors.New("authentication required").Error(), http.StatusUnauthorized)
+		body, _ := json.Marshal(map[string]string{"error": "authentication required"})
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, string(body), http.StatusUnauthorized)
 		return
 	} else {
 		next(w, r)

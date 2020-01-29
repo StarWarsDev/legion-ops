@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
 import { ThemeProvider, makeStyles } from "@material-ui/core/styles";
 import theme from "./theme";
@@ -10,6 +10,8 @@ import {
   Typography
 } from "@material-ui/core";
 import Header from "./Header";
+import { get } from "./http/api";
+import { useAppStore } from "./AppContext";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -39,13 +41,32 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const App: React.FC = () => {
+  const { dispatch, state } = useAppStore();
+
+  useEffect(() => {
+    get("/api/me").then(resp => {
+      console.log(resp);
+      if (resp.status.code === 200) {
+        dispatch({
+          type: "authenticated",
+          user: {
+            authenticated: true,
+            username: resp.body.nickname,
+            picture: resp.body.picture,
+            name: resp.body.name,
+          }
+        });
+      }
+    });
+  }, []);
+
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
         <CssBaseline />
-        <Header />
+        <Header user={state.user} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="xl" className={classes.container}>
