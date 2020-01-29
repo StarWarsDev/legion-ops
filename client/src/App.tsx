@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const App: React.FC = () => {
-  const { dispatch } = useAppStore();
+  const { dispatch, state } = useAppStore();
 
   useEffect(() => {
     get("/api/me").then(resp => {
@@ -51,7 +51,9 @@ const App: React.FC = () => {
           type: "authenticated",
           user: {
             authenticated: true,
-            username: resp.body.nickname
+            username: resp.body.nickname,
+            picture: resp.body.picture,
+            name: resp.body.name,
           }
         });
       }
@@ -64,7 +66,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
         <CssBaseline />
-        <Header />
+        <Header user={state.user} />
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Container maxWidth="xl" className={classes.container}>

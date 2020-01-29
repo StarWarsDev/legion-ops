@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import clsx from "clsx";
 import {
   AppBar,
+    Avatar,
+    Button,
   Toolbar,
   Typography,
   makeStyles,
@@ -10,6 +12,7 @@ import {
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import {User} from "./model/app";
 
 const drawerWidth = 240;
 
@@ -101,10 +104,13 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-interface Props {}
+interface Props {
+  user: User;
+}
 
 export default function Header(props: Props) {
   const classes = useStyles();
+  const { user } = props;
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -126,7 +132,22 @@ export default function Header(props: Props) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6">Legion Ops</Typography>
+          <Typography variant="h6" className={classes.title}>Legion Ops</Typography>
+          <div className={classes.loginWrapper}>
+            {!user.authenticated && (
+                <Button color="inherit" href="/login">
+                  Login
+                </Button>
+            )}
+
+            {user.authenticated && (
+                <React.Fragment>
+                  <IconButton size="small">
+                    <Avatar src={user.picture} />
+                  </IconButton>
+                </React.Fragment>
+            )}
+          </div>
         </Toolbar>
       </AppBar>
 

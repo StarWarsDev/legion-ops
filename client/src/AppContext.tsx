@@ -18,8 +18,8 @@ type Action =
     | {type: "authenticated", user: User};
 
 const initialState = {
-    user: { authenticated: false, username: "" }
-}
+    user: { authenticated: false, username: "", name: "", picture: "" }
+};
 
 const AppContext = createContext<IAppContext>({
     state: initialState,
@@ -32,11 +32,11 @@ const reducer = (state: IState, action: Action) => {
             return {
                 ...state,
                 user: action.user
-            }
+            };
         default:
             return state
     }
-}
+};
 
 export const AppDataProvider = ({ children }: Props) => {
     const [state, dispatch] = useReducer(reducer, initialState);
