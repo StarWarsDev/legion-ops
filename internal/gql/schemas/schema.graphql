@@ -1,0 +1,62 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Event {
+    createdAt: Date!
+    days: [EventDay!]!
+    id: ID!
+    lastUpdated: Date!
+    name: String!
+}
+
+type EventDay {
+    createdAt: Date!
+    endAt: Date!
+    id: ID!
+    lastUpdated: Date!
+    rounds: [Round!]!
+    startAt: Date!
+}
+
+type Match {
+    id: ID!
+    players: [Player!]!
+}
+
+type Mutation {
+    createEvent(input: EventInput!): Event!
+    updateEvent(input: EventInput!): Event!
+    deleteEvent(eventId: ID!): Boolean!
+}
+
+type Player {
+    id: ID!
+    name: String!
+    user: User
+}
+
+type Query {
+    events: [Event!]!
+}
+
+type Round {
+    counter: Int!
+    id: ID!
+    matches: [Match!]!
+}
+
+type User {
+    id: ID!
+    name: String!
+    picture: String
+    username: String!
+}
+
+input EventInput {
+    name: String!
+}
+
+
+scalar Date

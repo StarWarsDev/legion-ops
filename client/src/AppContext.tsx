@@ -1,11 +1,18 @@
 import React, { createContext, useReducer, useContext } from 'react'
 import { User } from './model/app';
 
+const AUTH0_CLIENT_ID: string | undefined = process.env.REACT_APP_AUTH0_CLIENT_ID;
+
+interface Auth0 {
+    clientID: string | undefined;
+}
+
 interface Props {
     children: React.ReactChildren | Element | React.ReactChild;
 }
 
 interface IState {
+    auth0: Auth0;
     user: User;
 }
 
@@ -18,6 +25,7 @@ type Action =
     | {type: "authenticated", user: User};
 
 const initialState = {
+    auth0: { clientID: AUTH0_CLIENT_ID },
     user: { authenticated: false, username: "", name: "", picture: "" }
 };
 

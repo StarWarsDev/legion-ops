@@ -1,5 +1,7 @@
 build:
-    docker:
-      web: Dockerfile
-      worker:
-         dockerfile: Dockerfile
+  docker:
+    web: Dockerfile
+    worker:
+      dockerfile: Dockerfile
+  config:
+    REACT_APP_AUTH0_CLIENT_ID: TvCKJz3LDnVpy6B0SuzOSP4HFIQ04XJv
