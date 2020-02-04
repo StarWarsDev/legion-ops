@@ -1,25 +1,33 @@
+#All the things
 all: clean build
 
-build: build-react build-go
+build: client-build server-build
 
-build-react:
+clean: server-clean client-clean
+
+# Run this with the -j flag ex: `make -j start`
+start: server-start client-start
+
+# Client
+client-build:
 	cd client && yarn && yarn build
 
-build-go: regenerate
-	go build .
-
-start-server:
-	go run .
-
-clean: clean-go clean-react
-
-clean-go:
-	rm -f internal/gql/generated.go \
-		  internal/gql/models/generated.go \
-		  internal/gql/resolvers/generated.go
-
-clean-react:
+client-clean:
 	rm -rf client/build
 
-regenerate:
+client-start:
+	cd client && yarn start
+
+#Server
+server-build: server-gql-regenerate
+	go build .
+
+server-clean:
+	rm -f internal/gql/generated.go \
+		  internal/gql/models/generated.go
+
+server-start:
+	go run .
+
+server-gql-regenerate:
 	go run -v github.com/99designs/gqlgen $1
