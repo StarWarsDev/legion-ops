@@ -16,9 +16,9 @@ type ORM struct {
 }
 
 func Factory() (ORM, error) {
-	host := os.Getenv("DATABASE")
+	host := os.Getenv("DATABASE_URL")
 	if host == "" {
-		host = "host=localhost dbname=postgres sslmode=disable"
+		log.Fatal("no environment variable DATABASE_URL found")
 	}
 	db, err := gorm.Open("postgres", host)
 	if err != nil {
