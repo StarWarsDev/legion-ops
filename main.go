@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm"
+
 	"github.com/joho/godotenv"
 )
 
@@ -31,5 +33,10 @@ func main() {
 		localFilePath = "./client/build"
 	}
 
-	StartServer(port, localFilePath, wait)
+	dbORM, err := orm.Factory()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	StartServer(port, localFilePath, wait, &dbORM)
 }

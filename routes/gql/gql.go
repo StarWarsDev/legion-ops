@@ -3,6 +3,8 @@ package gql
 import (
 	"net/http"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm"
+
 	"github.com/99designs/gqlgen/handler"
 	"github.com/StarWarsDev/legion-ops/internal/gql"
 	"github.com/StarWarsDev/legion-ops/internal/gql/resolvers"
@@ -17,9 +19,11 @@ func New(store *sessions.CookieStore) GraphQLHandlers {
 	return GraphQLHandlers{store: store}
 }
 
-func (gh *GraphQLHandlers) GraphQLHandler() http.Handler {
+func (gh *GraphQLHandlers) GraphQLHandler(dbORM *orm.ORM) http.Handler {
 	c := gql.Config{
-		Resolvers: &resolvers.Resolver{},
+		Resolvers: &resolvers.Resolver{
+			ORM: dbORM,
+		},
 	}
 
 	return handler.GraphQL(gql.NewExecutableSchema(c))

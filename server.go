@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm"
+
 	"github.com/StarWarsDev/legion-ops/routes/gql"
 
 	"github.com/StarWarsDev/legion-ops/routes/login"
@@ -29,7 +31,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
-func StartServer(port, localFilePath string, wait time.Duration) {
+func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM) {
 	storeSalt := os.Getenv("STORE_SALT")
 	if storeSalt == "" {
 		storeSalt = "LOCAL_DEV"
@@ -51,7 +53,7 @@ func StartServer(port, localFilePath string, wait time.Duration) {
 	r.HandleFunc("/callback", callbackHandlers.HandleCallback)
 
 	r.Handle("/graphical", graphqlHandlers.GraphicalHandler("/graphql"))
-	r.Handle("/graphql", graphqlHandlers.GraphQLHandler())
+	r.Handle("/graphql", graphqlHandlers.GraphQLHandler(dbORM))
 
 	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})

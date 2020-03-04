@@ -2,6 +2,12 @@ package resolvers
 
 import (
 	"context"
+	"log"
+
+	"github.com/99designs/gqlgen/graphql"
+
+	"github.com/StarWarsDev/legion-ops/internal/orm"
+	models2 "github.com/StarWarsDev/legion-ops/internal/orm/models"
 
 	"github.com/StarWarsDev/legion-ops/internal/gql"
 	"github.com/StarWarsDev/legion-ops/internal/gql/models"
@@ -9,7 +15,9 @@ import (
 
 // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
-type Resolver struct{}
+type Resolver struct {
+	ORM *orm.ORM
+}
 
 func (r *Resolver) Mutation() gql.MutationResolver {
 	return &mutationResolver{r}
@@ -33,11 +41,23 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Events(ctx context.Context) ([]*models.Event, error) {
-	records := []*models.Event{
-		&models.Event{
-			ID:   "ec17af15-e354-440c-a09f-69715fc8b595",
-			Name: "Mock Event",
-		},
+	rctx := graphql.GetRequestContext(ctx)
+	log.Println(rctx.RawQuery)
+	db := r.ORM.DB.New()
+	dbRecords := []models2.Event{}
+	var count int
+	db = db.Select("id, name").Find(&dbRecords).Count(&count)
+
+	var records []*models.Event
+
+	for _, dbEvent := range dbRecords {
+		log.Println(count)
+		log.Println(dbEvent)
+		records = append(records, &models.Event{
+			ID:   dbEvent.ID.String(),
+			Name: dbEvent.Name,
+		})
 	}
+
 	return records, nil
 }

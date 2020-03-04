@@ -3,15 +3,32 @@ schema {
     mutation: Mutation
 }
 
-type Event {
-    createdAt: Date!
-    days: [EventDay!]!
+interface Record {
     id: ID!
+    createdAt: Date!
     lastUpdated: Date!
-    name: String!
 }
 
-type EventDay {
+# EventType helps to indicate an event's type.
+enum EventType {
+    # Indicates a League event
+    LEAGUE
+    # Indicates an FFG Organized Play event
+    FFGOP
+    # Indicates some other, free form event
+    OTHER
+}
+
+type Event implements Record {
+    id: ID!
+    createdAt: Date!
+    lastUpdated: Date!
+    name: String!
+    type: EventType!
+    days: [EventDay!]!
+}
+
+type EventDay implements Record{
     createdAt: Date!
     endAt: Date!
     id: ID!
