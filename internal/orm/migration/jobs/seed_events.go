@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	m2 "github.com/StarWarsDev/legion-ops/internal/gql/models"
 	"github.com/StarWarsDev/legion-ops/internal/orm/models"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
@@ -8,6 +9,7 @@ import (
 
 var firstEvent *models.Event = &models.Event{
 	Name: "Test Event",
+	Type: m2.EventTypeLeague.String(),
 }
 
 var SeedEvents *gormigrate.Migration = &gormigrate.Migration{

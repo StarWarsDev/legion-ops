@@ -14,6 +14,7 @@ type Event struct {
 	ID        uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
 	CreatedAt time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
 	Name      string    `gorm:"not null"`
+	Type      string    `gorm:"not null"`
 }
 
 func (event *Event) BeforeCreate(scope *gorm.Scope) error {
