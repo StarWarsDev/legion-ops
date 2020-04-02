@@ -1,4 +1,4 @@
 # Legon Ops
 
-Legion league organizer application.
+Legion league and tournament organizer application.
 
