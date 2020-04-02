@@ -46,7 +46,7 @@ func (r *queryResolver) Events(ctx context.Context) ([]*models.Event, error) {
 	db := r.ORM.DB.New()
 	dbRecords := []models2.Event{}
 	var count int
-	db = db.Select("id, name").Find(&dbRecords).Count(&count)
+	db = db.Select("id, createdAt, lastUpdated, name, type").Find(&dbRecords).Count(&count)
 
 	var records []*models.Event
 
@@ -54,8 +54,11 @@ func (r *queryResolver) Events(ctx context.Context) ([]*models.Event, error) {
 		log.Println(count)
 		log.Println(dbEvent)
 		records = append(records, &models.Event{
-			ID:   dbEvent.ID.String(),
-			Name: dbEvent.Name,
+			ID:          dbEvent.ID.String(),
+			CreatedAt:   dbEvent.CreatedAt.String(),
+			LastUpdated: dbEvent.LastUpdated.String(),
+			Name:        dbEvent.Name,
+			Type:        models.EventType(dbEvent.Type),
 		})
 	}
 

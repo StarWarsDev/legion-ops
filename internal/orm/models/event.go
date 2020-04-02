@@ -11,10 +11,11 @@ import (
 
 type Event struct {
 	//gorm.Model
-	ID        uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	CreatedAt time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
-	Name      string    `gorm:"not null"`
-	Type      string    `gorm:"not null"`
+	ID          uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
+	CreatedAt   time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
+	LastUpdated time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
+	Name        string    `gorm:"not null"`
+	Type        string    `gorm:"not null"`
 }
 
 func (event *Event) BeforeCreate(scope *gorm.Scope) error {
