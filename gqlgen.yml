@@ -12,7 +12,7 @@ model:
   filename: internal/gql/models/generated.go
   package: models
 resolver:
-  filename: internal/gql/resolvers/generated.go
+  filename: internal/gql/resolvers/resolver.go
   type: Resolver
   package: resolvers
 autobind: []

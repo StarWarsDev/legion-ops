@@ -6,7 +6,7 @@ schema {
 interface Record {
     id: ID!
     createdAt: Date!
-    lastUpdated: Date!
+    updatedAt: Date!
 }
 
 # EventType helps to indicate an event's type.
@@ -22,7 +22,7 @@ enum EventType {
 type Event implements Record {
     id: ID!
     createdAt: Date!
-    lastUpdated: Date!
+    updatedAt: Date!
     name: String!
     type: EventType!
     days: [EventDay!]!
@@ -32,7 +32,7 @@ type EventDay implements Record{
     createdAt: Date!
     endAt: Date!
     id: ID!
-    lastUpdated: Date!
+    updatedAt: Date!
     rounds: [Round!]!
     startAt: Date!
 }

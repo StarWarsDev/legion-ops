@@ -7,7 +7,7 @@ import (
 	"gopkg.in/gormigrate.v1"
 )
 
-var firstEvent *models.Event = &models.Event{
+var firstEvent models.Event = models.Event{
 	Name: "Test Event",
 	Type: m2.EventTypeLeague.String(),
 }
@@ -15,9 +15,9 @@ var firstEvent *models.Event = &models.Event{
 var SeedEvents *gormigrate.Migration = &gormigrate.Migration{
 	ID: "SEED_EVENTS",
 	Migrate: func(db *gorm.DB) error {
-		return db.Create(firstEvent).Error
+		return db.Debug().Create(&firstEvent).Error
 	},
 	Rollback: func(db *gorm.DB) error {
-		return db.Delete(firstEvent).Error
+		return db.Debug().Delete(&firstEvent).Error
 	},
 }

@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 
@@ -41,24 +42,34 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Events(ctx context.Context) ([]*models.Event, error) {
+	var records []*models.Event
 	rctx := graphql.GetRequestContext(ctx)
 	log.Println(rctx.RawQuery)
 	db := r.ORM.DB.New()
-	dbRecords := []models2.Event{}
+	var dbRecords []models2.Event
 	var count int
-	db = db.Select("id, createdAt, lastUpdated, name, type").Find(&dbRecords).Count(&count)
-
-	var records []*models.Event
+	err := db.Select("id, name, type, created_at, updated_at").Find(&dbRecords).Count(&count).Error
+	log.Println(count)
+	if err != nil {
+		log.Println(err)
+		return records, err
+	}
 
 	for _, dbEvent := range dbRecords {
-		log.Println(count)
-		log.Println(dbEvent)
+		log.Printf(
+			"ID: %s, CreatedAt: %d, UpdatedAt: %d, Name: %s, Type: %s\n",
+			dbEvent.ID.String(),
+			dbEvent.CreatedAt,
+			dbEvent.UpdatedAt,
+			dbEvent.Name,
+			dbEvent.Type,
+		)
 		records = append(records, &models.Event{
-			ID:          dbEvent.ID.String(),
-			CreatedAt:   dbEvent.CreatedAt.String(),
-			LastUpdated: dbEvent.LastUpdated.String(),
-			Name:        dbEvent.Name,
-			Type:        models.EventType(dbEvent.Type),
+			ID:        dbEvent.ID.String(),
+			CreatedAt: time.Unix(dbEvent.CreatedAt, 0).String(),
+			UpdatedAt: time.Unix(dbEvent.UpdatedAt, 0).String(),
+			Name:      dbEvent.Name,
+			Type:      models.EventType(dbEvent.Type),
 		})
 	}
 
