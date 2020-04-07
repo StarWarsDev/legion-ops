@@ -4,16 +4,22 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
+	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
+
 	"github.com/StarWarsDev/legion-ops/internal/orm/migration/jobs"
 
-	"github.com/StarWarsDev/legion-ops/internal/gql/models"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
 )
 
 func updateMigration(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&models.Event{},
+		&user.User{},
+		&event.Event{},
+		&event.Day{},
+		&event.Round{},
+		&event.Match{},
 	).Error
 }
 
@@ -37,6 +43,7 @@ func ServiceAutoMigration(db *gorm.DB) error {
 		return err
 	}
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
+		jobs.SeedUsers,
 		jobs.SeedEvents,
 	})
 

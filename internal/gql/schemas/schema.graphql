@@ -26,6 +26,10 @@ type Event implements Record {
     name: String!
     type: EventType!
     days: [EventDay!]!
+    organizer: User!
+    headJudge: User
+    judges: [User!]!
+    players: [User!]!
 }
 
 type EventDay implements Record{
@@ -39,7 +43,15 @@ type EventDay implements Record{
 
 type Match {
     id: ID!
-    players: [Player!]!
+    player1: User!
+    player1VictoryPoints: Int!
+    player1MarginOfVictory: Int!
+    player2: User!
+    player2VictoryPoints: Int!
+    player2MarginOfVictory: Int!
+    bye: User
+    blue: User
+    winner: User
 }
 
 type Mutation {
@@ -48,14 +60,8 @@ type Mutation {
     deleteEvent(eventId: ID!): Boolean!
 }
 
-type Player {
-    id: ID!
-    name: String!
-    user: User
-}
-
 type Query {
-    events: [Event!]!
+    events(user: ID, max: Int=10): [Event!]!
 }
 
 type Round {

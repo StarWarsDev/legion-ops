@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -15,4 +16,13 @@ type BaseModel struct {
 type BaseModelSoftDelete struct {
 	BaseModel
 	//DeletedAt *time.Time `sql:"index"`
+}
+
+func GenerateUUID() (uuid.UUID, error) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		log.Println(err)
+		return uuid.UUID{}, err
+	}
+	return id, nil
 }
