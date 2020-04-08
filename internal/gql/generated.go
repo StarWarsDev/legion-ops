@@ -549,8 +549,35 @@ type User {
 
 input EventInput {
     name: String!
+    type: EventType!
+    days: [EventDayInput!]
+    organizer: ID!
+    headJudge: ID
+    judges: [ID!]
+    players: [ID!]
 }
 
+input EventDayInput {
+    endAt: Date!
+    rounds: [RoundInput!]
+    startAt: Date!
+}
+
+input RoundInput {
+    matches: [MatchInput!]
+}
+
+input MatchInput {
+    player1: ID!
+    player1VictoryPoints: Int
+    player1MarginOfVictory: Int
+    player2: ID!
+    player2VictoryPoints: Int
+    player2MarginOfVictory: Int
+    bye: ID
+    blue: ID
+    winner: ID
+}
 
 scalar Date`},
 )
@@ -3281,6 +3308,36 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputEventDayInput(ctx context.Context, obj interface{}) (models.EventDayInput, error) {
+	var it models.EventDayInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "endAt":
+			var err error
+			it.EndAt, err = ec.unmarshalNDate2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rounds":
+			var err error
+			it.Rounds, err = ec.unmarshalORoundInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "startAt":
+			var err error
+			it.StartAt, err = ec.unmarshalNDate2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj interface{}) (models.EventInput, error) {
 	var it models.EventInput
 	var asMap = obj.(map[string]interface{})
@@ -3290,6 +3347,126 @@ func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj in
 		case "name":
 			var err error
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+			it.Type, err = ec.unmarshalNEventType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "days":
+			var err error
+			it.Days, err = ec.unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizer":
+			var err error
+			it.Organizer, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "headJudge":
+			var err error
+			it.HeadJudge, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "judges":
+			var err error
+			it.Judges, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "players":
+			var err error
+			it.Players, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMatchInput(ctx context.Context, obj interface{}) (models.MatchInput, error) {
+	var it models.MatchInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "player1":
+			var err error
+			it.Player1, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "player1VictoryPoints":
+			var err error
+			it.Player1VictoryPoints, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "player1MarginOfVictory":
+			var err error
+			it.Player1MarginOfVictory, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "player2":
+			var err error
+			it.Player2, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "player2VictoryPoints":
+			var err error
+			it.Player2VictoryPoints, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "player2MarginOfVictory":
+			var err error
+			it.Player2MarginOfVictory, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bye":
+			var err error
+			it.Bye, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "blue":
+			var err error
+			it.Blue, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "winner":
+			var err error
+			it.Winner, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRoundInput(ctx context.Context, obj interface{}) (models.RoundInput, error) {
+	var it models.RoundInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "matches":
+			var err error
+			it.Matches, err = ec.unmarshalOMatchInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4050,6 +4227,18 @@ func (ec *executionContext) marshalNEventDay2ᚖgithubᚗcomᚋStarWarsDevᚋleg
 	return ec._EventDay(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEventDayInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInput(ctx context.Context, v interface{}) (models.EventDayInput, error) {
+	return ec.unmarshalInputEventDayInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNEventDayInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInput(ctx context.Context, v interface{}) (*models.EventDayInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNEventDayInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInput(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalNEventInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventInput(ctx context.Context, v interface{}) (models.EventInput, error) {
 	return ec.unmarshalInputEventInput(ctx, v)
 }
@@ -4142,6 +4331,18 @@ func (ec *executionContext) marshalNMatch2ᚖgithubᚗcomᚋStarWarsDevᚋlegion
 	return ec._Match(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNMatchInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInput(ctx context.Context, v interface{}) (models.MatchInput, error) {
+	return ec.unmarshalInputMatchInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNMatchInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInput(ctx context.Context, v interface{}) (*models.MatchInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNMatchInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInput(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) marshalNRound2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRound(ctx context.Context, sel ast.SelectionSet, v models.Round) graphql.Marshaler {
 	return ec._Round(ctx, sel, &v)
 }
@@ -4191,6 +4392,18 @@ func (ec *executionContext) marshalNRound2ᚖgithubᚗcomᚋStarWarsDevᚋlegion
 		return graphql.Null
 	}
 	return ec._Round(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRoundInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInput(ctx context.Context, v interface{}) (models.RoundInput, error) {
+	return ec.unmarshalInputRoundInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNRoundInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInput(ctx context.Context, v interface{}) (*models.RoundInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNRoundInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -4507,12 +4720,64 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
+func (ec *executionContext) unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx context.Context, v interface{}) ([]*models.EventDayInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.EventDayInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNEventDayInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalID(v)
 }
 
 func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -4551,6 +4816,46 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOMatchInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInputᚄ(ctx context.Context, v interface{}) ([]*models.MatchInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.MatchInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNMatchInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalORoundInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInputᚄ(ctx context.Context, v interface{}) ([]*models.RoundInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.RoundInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNRoundInput2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

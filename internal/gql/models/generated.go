@@ -38,8 +38,20 @@ type EventDay struct {
 
 func (EventDay) IsRecord() {}
 
+type EventDayInput struct {
+	EndAt   string        `json:"endAt"`
+	Rounds  []*RoundInput `json:"rounds"`
+	StartAt string        `json:"startAt"`
+}
+
 type EventInput struct {
-	Name string `json:"name"`
+	Name      string           `json:"name"`
+	Type      EventType        `json:"type"`
+	Days      []*EventDayInput `json:"days"`
+	Organizer string           `json:"organizer"`
+	HeadJudge *string          `json:"headJudge"`
+	Judges    []string         `json:"judges"`
+	Players   []string         `json:"players"`
 }
 
 type Match struct {
@@ -55,10 +67,26 @@ type Match struct {
 	Winner                 *User  `json:"winner"`
 }
 
+type MatchInput struct {
+	Player1                string  `json:"player1"`
+	Player1VictoryPoints   *int    `json:"player1VictoryPoints"`
+	Player1MarginOfVictory *int    `json:"player1MarginOfVictory"`
+	Player2                string  `json:"player2"`
+	Player2VictoryPoints   *int    `json:"player2VictoryPoints"`
+	Player2MarginOfVictory *int    `json:"player2MarginOfVictory"`
+	Bye                    *string `json:"bye"`
+	Blue                   *string `json:"blue"`
+	Winner                 *string `json:"winner"`
+}
+
 type Round struct {
 	Counter int      `json:"counter"`
 	ID      string   `json:"id"`
 	Matches []*Match `json:"matches"`
+}
+
+type RoundInput struct {
+	Matches []*MatchInput `json:"matches"`
 }
 
 type User struct {

@@ -6,6 +6,9 @@ import (
 )
 
 func GQLUser(userIn *user.User) *models.User {
+	if userIn == nil {
+		return nil
+	}
 	return &models.User{
 		ID:       userIn.ID.String(),
 		Name:     userIn.DisplayName(),

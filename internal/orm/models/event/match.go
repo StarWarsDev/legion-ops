@@ -15,7 +15,7 @@ type Match struct {
 	UpdatedAt int       `gorm:"not null"`
 
 	// Match
-	Round   Round
+	Round   Round `gorm:"PRELOAD:false"`
 	RoundID uuid.UUID
 
 	// Bye

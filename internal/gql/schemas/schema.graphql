@@ -79,7 +79,34 @@ type User {
 
 input EventInput {
     name: String!
+    type: EventType!
+    days: [EventDayInput!]
+    organizer: ID!
+    headJudge: ID
+    judges: [ID!]
+    players: [ID!]
 }
 
+input EventDayInput {
+    endAt: Date!
+    rounds: [RoundInput!]
+    startAt: Date!
+}
+
+input RoundInput {
+    matches: [MatchInput!]
+}
+
+input MatchInput {
+    player1: ID!
+    player1VictoryPoints: Int
+    player1MarginOfVictory: Int
+    player2: ID!
+    player2VictoryPoints: Int
+    player2MarginOfVictory: Int
+    bye: ID
+    blue: ID
+    winner: ID
+}
 
 scalar Date

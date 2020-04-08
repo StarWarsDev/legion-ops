@@ -20,11 +20,20 @@ var SeedEvents *gormigrate.Migration = &gormigrate.Migration{
 		db.First(&firstUser, &user.User{
 			Username: firstUserUsername,
 		})
+
+		var secondUser user.User
+		db.First(&secondUser, &user.User{
+			Username: secondUserUsername,
+		})
 		firstEvent := event.Event{
 			Name:      firstEventName,
 			Type:      gqlModel.EventTypeFfgop.String(),
 			Organizer: firstUser,
 			HeadJudge: &firstUser,
+			Players: []user.User{
+				firstUser,
+				secondUser,
+			},
 			Days: []event.Day{
 				{
 					StartAt: time.Now().UTC().Unix(),
@@ -32,6 +41,9 @@ var SeedEvents *gormigrate.Migration = &gormigrate.Migration{
 					Rounds: []event.Round{
 						{
 							Counter: 1,
+							Matches: []event.Match{
+								{Player1: firstUser, Player2: secondUser},
+							},
 						},
 					},
 				},

@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"log"
 	"time"
 
 	"github.com/StarWarsDev/legion-ops/internal/gql/models"
@@ -9,14 +8,6 @@ import (
 )
 
 func GQLEvent(eventIn *event.Event) *models.Event {
-	log.Printf(
-		"ID: %s, CreatedAt: %d, UpdatedAt: %d, Name: %s, Type: %s\n",
-		eventIn.ID.String(),
-		eventIn.CreatedAt,
-		eventIn.UpdatedAt,
-		eventIn.Name,
-		eventIn.Type,
-	)
 	eventOut := models.Event{
 		ID:        eventIn.ID.String(),
 		CreatedAt: time.Unix(eventIn.CreatedAt, 0).String(),
@@ -53,6 +44,21 @@ func GQLEvent(eventIn *event.Event) *models.Event {
 				ID:      round.ID.String(),
 				Counter: round.Counter,
 				Matches: nil,
+			}
+
+			for _, match := range round.Matches {
+				roundOut.Matches = append(roundOut.Matches, &models.Match{
+					ID:                     match.ID.String(),
+					Player1:                GQLUser(&match.Player1),
+					Player1VictoryPoints:   match.Player1VictoryPoints,
+					Player1MarginOfVictory: match.Player1MarginOfVictory,
+					Player2:                GQLUser(&match.Player2),
+					Player2VictoryPoints:   match.Player2VictoryPoints,
+					Player2MarginOfVictory: match.Player2MarginOfVictory,
+					Bye:                    GQLUser(match.Bye),
+					Blue:                   GQLUser(match.Blue),
+					Winner:                 GQLUser(match.Winner),
+				})
 			}
 
 			dayOut.Rounds = append(dayOut.Rounds, &roundOut)
