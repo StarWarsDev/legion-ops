@@ -1,59 +1,67 @@
-# This file was generated based on ".graphqlconfig". Do not edit manually.
-
 schema {
     query: Query
     mutation: Mutation
 }
 
 interface Record {
-    createdAt: Date!
     id: ID!
+    createdAt: Date!
     updatedAt: Date!
+}
+
+# EventType helps to indicate an event's type.
+enum EventType {
+    # Indicates a League event
+    LEAGUE
+    # Indicates an FFG Organized Play event
+    FFGOP
+    # Indicates some other, free form event
+    OTHER
 }
 
 type Event implements Record {
-    createdAt: Date!
-    days: [EventDay!]!
-    headJudge: User
     id: ID!
-    judges: [User!]!
-    name: String!
-    organizer: User!
-    players: [User!]!
-    type: EventType!
+    createdAt: Date!
     updatedAt: Date!
+    name: String!
+    type: EventType!
+    days: [EventDay!]!
+    organizer: User!
+    headJudge: User
+    judges: [User!]!
+    players: [User!]!
 }
 
-type EventDay implements Record {
+type EventDay implements Record{
     createdAt: Date!
     endAt: Date!
     id: ID!
+    updatedAt: Date!
     rounds: [Round!]!
     startAt: Date!
-    updatedAt: Date!
 }
 
 type Match {
-    blue: User
-    bye: User
     id: ID!
     player1: User!
-    player1MarginOfVictory: Int!
     player1VictoryPoints: Int!
+    player1MarginOfVictory: Int!
     player2: User!
-    player2MarginOfVictory: Int!
     player2VictoryPoints: Int!
+    player2MarginOfVictory: Int!
+    bye: User
+    blue: User
     winner: User
 }
 
 type Mutation {
     createEvent(input: EventInput!): Event!
-    deleteEvent(eventId: ID!): Boolean!
     updateEvent(input: EventInput!): Event!
+    deleteEvent(eventId: ID!): Boolean!
 }
 
 type Query {
-    events(max: Int = 10, user: ID): [Event!]!
+    events(user: ID, max: Int=10): [Event!]!
 }
 
 type Round {
@@ -69,10 +77,14 @@ type User {
     username: String!
 }
 
-enum EventType {
-    FFGOP
-    LEAGUE
-    OTHER
+input EventInput {
+    name: String!
+    type: EventType!
+    days: [EventDayInput!]
+    organizer: ID!
+    headJudge: ID
+    judges: [ID!]
+    players: [ID!]
 }
 
 input EventDayInput {
@@ -81,31 +93,20 @@ input EventDayInput {
     startAt: Date!
 }
 
-input EventInput {
-    days: [EventDayInput!]
-    headJudge: ID
-    judges: [ID!]
-    name: String!
-    organizer: ID!
-    players: [ID!]
-    type: EventType!
-}
-
-input MatchInput {
-    blue: ID
-    bye: ID
-    player1: ID!
-    player1MarginOfVictory: Int
-    player1VictoryPoints: Int
-    player2: ID!
-    player2MarginOfVictory: Int
-    player2VictoryPoints: Int
-    winner: ID
-}
-
 input RoundInput {
     matches: [MatchInput!]
 }
 
+input MatchInput {
+    player1: ID!
+    player1VictoryPoints: Int
+    player1MarginOfVictory: Int
+    player2: ID!
+    player2VictoryPoints: Int
+    player2MarginOfVictory: Int
+    bye: ID
+    blue: ID
+    winner: ID
+}
 
 scalar Date
