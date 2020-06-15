@@ -3,19 +3,12 @@ WORKDIR /src
 COPY . .
 RUN go build -v .
 
-FROM node as client
-WORKDIR /src
-COPY --from=server /src/client .
-RUN yarn
-RUN yarn build
-
 FROM alpine
 
 ENV CLIENT_FILES_PATH /app/client/build
 
 RUN apk --no-cache add ca-certificates
 COPY --from=server /src/legion-ops /bin
-COPY --from=client /src/build/ /app/client/build/
 RUN apk update \
   && apk upgrade \
   && apk add --no-cache ca-certificates \
