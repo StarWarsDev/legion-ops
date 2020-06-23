@@ -7,6 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gorilla/handlers v1.4.2 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/sessions v1.2.0
 	github.com/jinzhu/gorm v1.9.12

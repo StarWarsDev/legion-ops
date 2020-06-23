@@ -27,6 +27,7 @@ import (
 	"github.com/StarWarsDev/legion-ops/routes/middlewares"
 
 	"github.com/StarWarsDev/legion-ops/routes/user"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
@@ -47,6 +48,12 @@ func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM)
 
 	n := negroni.Classic()
 	r := mux.NewRouter()
+
+	cors := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+	)
+
+	r.Use(cors)
 
 	r.HandleFunc("/login", loginHandlers.HandleLogin)
 	r.HandleFunc("/logout", logout.Handler)
