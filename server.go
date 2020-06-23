@@ -50,7 +50,9 @@ func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM)
 	r := mux.NewRouter()
 
 	cors := handlers.CORS(
+		handlers.AllowedHeaders([]string{"content-type"}),
 		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowCredentials(),
 	)
 
 	r.Use(cors)
