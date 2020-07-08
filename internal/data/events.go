@@ -3,6 +3,8 @@ package data
 import (
 	"log"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
+
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
 
 	gqlModel "github.com/StarWarsDev/legion-ops/internal/gql/models"
@@ -27,4 +29,16 @@ func FindEvents(orm *orm.ORM, max int, forUser *gqlModel.User) ([]event.Event, e
 	}
 
 	return dbRecords, nil
+}
+
+func FindUserWithUsername(username string, orm *orm.ORM) (user.User, error) {
+	db := orm.DB.New()
+	var userRecord user.User
+	err := db.
+		Set("gorm:auto_preload", true).
+		Select("*").
+		Where("username=?", username).
+		First(&userRecord).
+		Error
+	return userRecord, err
 }

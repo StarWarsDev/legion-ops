@@ -40,7 +40,7 @@ func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM)
 	store := sessions.NewCookieStore([]byte(storeSalt))
 	gob.Register(map[string]interface{}{})
 
-	middlewareFuncs := middlewares.New(store)
+	middlewareFuncs := middlewares.New(store, dbORM)
 	callbackHandlers := callback.New(store)
 	graphqlHandlers := gql.New(store)
 	loginHandlers := login.New(store)
@@ -56,6 +56,7 @@ func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM)
 	)
 
 	r.Use(cors)
+	r.Use(middlewareFuncs.Authorize)
 
 	r.HandleFunc("/login", loginHandlers.HandleLogin)
 	r.HandleFunc("/logout", logout.Handler)
