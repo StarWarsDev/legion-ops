@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/StarWarsDev/legion-ops/routes/middlewares"
@@ -47,8 +48,6 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 // Mutation
 func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
 	dbUser := middlewares.UserInContext(ctx)
-	log.Printf("%+v", dbUser)
-
 	if dbUser.Username == "" {
 		// username cannot be blank, return an error
 		return nil, errors.New("cannot create event, valid user not supplied")
@@ -56,11 +55,39 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventIn
 
 	panic("not implemented")
 }
-func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
+func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, input models.EventInput) (*models.Event, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot create event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(r.ORM, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.OrganizerID.String() != eventID {
+		return nil, fmt.Errorf("account is not authorized to modify event")
+	}
 
 	panic("not implemented")
 }
 func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (bool, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return false, errors.New("cannot create event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(r.ORM, eventID)
+	if err != nil {
+		return false, err
+	}
+
+	if dbEvent.OrganizerID.String() != eventID {
+		return false, fmt.Errorf("account is not authorized to modify event")
+	}
 
 	panic("not implemented")
 }
