@@ -2,7 +2,10 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"log"
+
+	"github.com/StarWarsDev/legion-ops/routes/middlewares"
 
 	"github.com/StarWarsDev/legion-ops/internal/gql/resolvers/mapper"
 
@@ -43,11 +46,21 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 
 // Mutation
 func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	log.Printf("%+v", dbUser)
+
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot create event, valid user not supplied")
+	}
+
 	panic("not implemented")
 }
 func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
+
 	panic("not implemented")
 }
 func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (bool, error) {
+
 	panic("not implemented")
 }
