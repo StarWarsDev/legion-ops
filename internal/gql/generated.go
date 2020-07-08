@@ -82,7 +82,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateEvent func(childComplexity int, input models.EventInput) int
 		DeleteEvent func(childComplexity int, eventID string) int
-		UpdateEvent func(childComplexity int, input models.EventInput) int
+		UpdateEvent func(childComplexity int, eventID string, input models.EventInput) int
 	}
 
 	Query struct {
@@ -105,7 +105,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
-	UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
+	UpdateEvent(ctx context.Context, eventID string, input models.EventInput) (*models.Event, error)
 	DeleteEvent(ctx context.Context, eventID string) (bool, error)
 }
 type QueryResolver interface {
@@ -343,7 +343,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateEvent(childComplexity, args["input"].(models.EventInput)), true
+		return e.complexity.Mutation.UpdateEvent(childComplexity, args["eventId"].(string), args["input"].(models.EventInput)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -526,7 +526,7 @@ type Match {
 
 type Mutation {
     createEvent(input: EventInput!): Event!
-    updateEvent(input: EventInput!): Event!
+    updateEvent(eventId: ID!, input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
 }
 
@@ -617,14 +617,22 @@ func (ec *executionContext) field_Mutation_deleteEvent_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.EventInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNEventInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["eventId"] = arg0
+	var arg1 models.EventInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg1, err = ec.unmarshalNEventInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1720,7 +1728,7 @@ func (ec *executionContext) _Mutation_updateEvent(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEvent(rctx, args["input"].(models.EventInput))
+		return ec.resolvers.Mutation().UpdateEvent(rctx, args["eventId"].(string), args["input"].(models.EventInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

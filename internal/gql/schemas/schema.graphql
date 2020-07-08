@@ -56,7 +56,7 @@ type Match {
 
 type Mutation {
     createEvent(input: EventInput!): Event!
-    updateEvent(input: EventInput!): Event!
+    updateEvent(eventId: ID!, input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
 }
 
