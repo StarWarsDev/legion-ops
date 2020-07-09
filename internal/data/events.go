@@ -110,6 +110,47 @@ func CreateEventWithInput(input *gqlModel.EventInput, organizer *user.User, orm 
 					Player1: p1,
 					Player2: p2,
 				}
+
+				if match.Player1MarginOfVictory != nil {
+					newMatch.Player1MarginOfVictory = *match.Player1MarginOfVictory
+				}
+
+				if match.Player1VictoryPoints != nil {
+					newMatch.Player1VictoryPoints = *match.Player1VictoryPoints
+				}
+
+				if match.Player2VictoryPoints != nil {
+					newMatch.Player2VictoryPoints = *match.Player2VictoryPoints
+				}
+
+				if match.Player2MarginOfVictory != nil {
+					newMatch.Player2MarginOfVictory = *match.Player2MarginOfVictory
+				}
+
+				if match.Blue != nil && *match.Blue != "" {
+					blue, err := GetUser(*match.Blue, orm)
+					if err != nil {
+						return newEvent, err
+					}
+					newMatch.Blue = &blue
+				}
+
+				if match.Bye != nil && *match.Bye != "" {
+					bye, err := GetUser(*match.Bye, orm)
+					if err != nil {
+						return newEvent, err
+					}
+					newMatch.Bye = &bye
+				}
+
+				if match.Winner != nil && *match.Winner != "" {
+					winner, err := GetUser(*match.Winner, orm)
+					if err != nil {
+						return newEvent, err
+					}
+					newMatch.Winner = &winner
+				}
+
 				newRound.Matches = append(newRound.Matches, newMatch)
 			}
 
