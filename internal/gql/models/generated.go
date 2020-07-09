@@ -48,7 +48,6 @@ type EventInput struct {
 	Name      string           `json:"name"`
 	Type      EventType        `json:"type"`
 	Days      []*EventDayInput `json:"days"`
-	Organizer string           `json:"organizer"`
 	HeadJudge *string          `json:"headJudge"`
 	Judges    []string         `json:"judges"`
 	Players   []string         `json:"players"`

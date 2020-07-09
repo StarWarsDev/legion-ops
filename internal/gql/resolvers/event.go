@@ -48,12 +48,23 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 // Mutation
 func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
 	dbUser := middlewares.UserInContext(ctx)
-	if dbUser.Username == "" {
+	if dbUser == nil {
 		// username cannot be blank, return an error
 		return nil, errors.New("cannot create event, valid user not supplied")
 	}
 
-	panic("not implemented")
+	if input.Name == "" {
+		return nil, errors.New("name cannot be blank")
+	}
+
+	dbEvent, err := data.CreateEventWithInput(&input, dbUser, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	newEvent := mapper.GQLEvent(&dbEvent)
+
+	return newEvent, nil
 }
 func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, input models.EventInput) (*models.Event, error) {
 	dbUser := middlewares.UserInContext(ctx)

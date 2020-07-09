@@ -551,7 +551,6 @@ input EventInput {
     name: String!
     type: EventType!
     days: [EventDayInput!]
-    organizer: ID!
     headJudge: ID
     judges: [ID!]
     players: [ID!]
@@ -3367,12 +3366,6 @@ func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj in
 		case "days":
 			var err error
 			it.Days, err = ec.unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "organizer":
-			var err error
-			it.Organizer, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
