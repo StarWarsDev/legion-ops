@@ -39,12 +39,14 @@ type EventDay struct {
 func (EventDay) IsRecord() {}
 
 type EventDayInput struct {
+	ID      *string       `json:"id"`
 	EndAt   string        `json:"endAt"`
 	Rounds  []*RoundInput `json:"rounds"`
 	StartAt string        `json:"startAt"`
 }
 
 type EventInput struct {
+	ID        *string          `json:"id"`
 	Name      string           `json:"name"`
 	Type      EventType        `json:"type"`
 	Days      []*EventDayInput `json:"days"`
@@ -67,6 +69,7 @@ type Match struct {
 }
 
 type MatchInput struct {
+	ID                     *string `json:"id"`
 	Player1                string  `json:"player1"`
 	Player1VictoryPoints   *int    `json:"player1VictoryPoints"`
 	Player1MarginOfVictory *int    `json:"player1MarginOfVictory"`
@@ -85,6 +88,7 @@ type Round struct {
 }
 
 type RoundInput struct {
+	ID      *string       `json:"id"`
 	Matches []*MatchInput `json:"matches"`
 }
 

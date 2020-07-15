@@ -56,7 +56,7 @@ type Match {
 
 type Mutation {
     createEvent(input: EventInput!): Event!
-    updateEvent(eventId: ID!, input: EventInput!): Event!
+    updateEvent(input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
 }
 
@@ -78,6 +78,7 @@ type User {
 }
 
 input EventInput {
+    id: ID
     name: String!
     type: EventType!
     days: [EventDayInput!]
@@ -87,16 +88,19 @@ input EventInput {
 }
 
 input EventDayInput {
+    id: ID
     endAt: Date!
     rounds: [RoundInput!]
     startAt: Date!
 }
 
 input RoundInput {
+    id: ID
     matches: [MatchInput!]
 }
 
 input MatchInput {
+    id: ID
     player1: ID!
     player1VictoryPoints: Int
     player1MarginOfVictory: Int

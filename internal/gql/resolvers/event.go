@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/StarWarsDev/legion-ops/routes/middlewares"
 
 	"github.com/StarWarsDev/legion-ops/internal/gql/resolvers/mapper"
@@ -33,22 +35,26 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 		log.Println("Only getting records for the specified user")
 	}
 
-	dbRecords, err := data.FindEvents(r.ORM, *max, nil)
-	if err != nil {
-		return records, err
-	}
+	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
+		dbRecords, err := data.FindEvents(tx, *max, nil)
+		if err != nil {
+			return err
+		}
 
-	for _, dbEvent := range dbRecords {
-		records = append(records, mapper.GQLEvent(&dbEvent))
-	}
+		for _, dbEvent := range dbRecords {
+			records = append(records, mapper.GQLEvent(&dbEvent))
+		}
 
-	return records, nil
+		return nil
+	})
+
+	return records, err
 }
 
 // Mutation
 func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
 	dbUser := middlewares.UserInContext(ctx)
-	if dbUser == nil {
+	if dbUser == nil || dbUser.Username == "" {
 		// username cannot be blank, return an error
 		return nil, errors.New("cannot create event, valid user not supplied")
 	}
@@ -62,27 +68,38 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventIn
 		return nil, err
 	}
 
-	newEvent := mapper.GQLEvent(&dbEvent)
+	eventOut := mapper.GQLEvent(&dbEvent)
 
-	return newEvent, nil
+	return eventOut, nil
 }
-func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, input models.EventInput) (*models.Event, error) {
+func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
+	if input.ID == nil {
+		return nil, errors.New("event id is required")
+	}
+
 	dbUser := middlewares.UserInContext(ctx)
-	if dbUser.Username == "" {
+	if dbUser == nil || dbUser.Username == "" {
 		// username cannot be blank, return an error
 		return nil, errors.New("cannot create event, valid user not supplied")
 	}
 
-	dbEvent, err := data.GetEventWithID(r.ORM, eventID)
+	dbEvent, err := data.GetEventWithID(*input.ID, data.NewDB(r.ORM))
 	if err != nil {
 		return nil, err
 	}
 
-	if dbEvent.OrganizerID.String() != eventID {
+	if dbEvent.Organizer.ID != dbUser.ID {
 		return nil, fmt.Errorf("account is not authorized to modify event")
 	}
 
-	panic("not implemented")
+	dbEvent, err = data.UpdateEventWithInput(&input, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&dbEvent)
+
+	return eventOut, nil
 }
 func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (bool, error) {
 	dbUser := middlewares.UserInContext(ctx)
@@ -91,12 +108,12 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 		return false, errors.New("cannot create event, valid user not supplied")
 	}
 
-	dbEvent, err := data.GetEventWithID(r.ORM, eventID)
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
 	if err != nil {
 		return false, err
 	}
 
-	if dbEvent.OrganizerID.String() != eventID {
+	if dbEvent.Organizer.ID != dbUser.ID {
 		return false, fmt.Errorf("account is not authorized to modify event")
 	}
 

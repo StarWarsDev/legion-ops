@@ -82,7 +82,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateEvent func(childComplexity int, input models.EventInput) int
 		DeleteEvent func(childComplexity int, eventID string) int
-		UpdateEvent func(childComplexity int, eventID string, input models.EventInput) int
+		UpdateEvent func(childComplexity int, input models.EventInput) int
 	}
 
 	Query struct {
@@ -105,7 +105,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
-	UpdateEvent(ctx context.Context, eventID string, input models.EventInput) (*models.Event, error)
+	UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
 	DeleteEvent(ctx context.Context, eventID string) (bool, error)
 }
 type QueryResolver interface {
@@ -343,7 +343,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateEvent(childComplexity, args["eventId"].(string), args["input"].(models.EventInput)), true
+		return e.complexity.Mutation.UpdateEvent(childComplexity, args["input"].(models.EventInput)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -526,7 +526,7 @@ type Match {
 
 type Mutation {
     createEvent(input: EventInput!): Event!
-    updateEvent(eventId: ID!, input: EventInput!): Event!
+    updateEvent(input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
 }
 
@@ -548,6 +548,7 @@ type User {
 }
 
 input EventInput {
+    id: ID
     name: String!
     type: EventType!
     days: [EventDayInput!]
@@ -557,16 +558,19 @@ input EventInput {
 }
 
 input EventDayInput {
+    id: ID
     endAt: Date!
     rounds: [RoundInput!]
     startAt: Date!
 }
 
 input RoundInput {
+    id: ID
     matches: [MatchInput!]
 }
 
 input MatchInput {
+    id: ID
     player1: ID!
     player1VictoryPoints: Int
     player1MarginOfVictory: Int
@@ -616,22 +620,14 @@ func (ec *executionContext) field_Mutation_deleteEvent_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["eventId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["eventId"] = arg0
-	var arg1 models.EventInput
+	var arg0 models.EventInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg1, err = ec.unmarshalNEventInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventInput(ctx, tmp)
+		arg0, err = ec.unmarshalNEventInput2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1727,7 +1723,7 @@ func (ec *executionContext) _Mutation_updateEvent(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEvent(rctx, args["eventId"].(string), args["input"].(models.EventInput))
+		return ec.resolvers.Mutation().UpdateEvent(rctx, args["input"].(models.EventInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3321,6 +3317,12 @@ func (ec *executionContext) unmarshalInputEventDayInput(ctx context.Context, obj
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "endAt":
 			var err error
 			it.EndAt, err = ec.unmarshalNDate2string(ctx, v)
@@ -3351,6 +3353,12 @@ func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj in
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
@@ -3399,6 +3407,12 @@ func (ec *executionContext) unmarshalInputMatchInput(ctx context.Context, obj in
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "player1":
 			var err error
 			it.Player1, err = ec.unmarshalNID2string(ctx, v)
@@ -3465,6 +3479,12 @@ func (ec *executionContext) unmarshalInputRoundInput(ctx context.Context, obj in
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "matches":
 			var err error
 			it.Matches, err = ec.unmarshalOMatchInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐMatchInputᚄ(ctx, v)
