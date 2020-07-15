@@ -423,3 +423,20 @@ func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event
 
 	return dbEvent, err
 }
+
+func DeleteEventWithID(id string, orm *orm.ORM) (bool, error) {
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		evt, err := GetEventWithID(id, tx)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Delete(&evt).Error
+
+		return err
+	})
+
+	return err == nil, err
+}
