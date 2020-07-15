@@ -105,7 +105,7 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 	dbUser := middlewares.UserInContext(ctx)
 	if dbUser.Username == "" {
 		// username cannot be blank, return an error
-		return false, errors.New("cannot create event, valid user not supplied")
+		return false, errors.New("cannot delete event, valid user not supplied")
 	}
 
 	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
@@ -117,5 +117,5 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 		return false, fmt.Errorf("account is not authorized to modify event")
 	}
 
-	panic("not implemented")
+	return data.DeleteEventWithID(eventID, r.ORM)
 }
