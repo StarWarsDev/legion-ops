@@ -99,7 +99,7 @@ func (f *MiddlewareFuncs) Authorize(next http.Handler) http.Handler {
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				// if valid, look up user in DB and set them in context
-				dbUser, err = data.FindUserWithUsername(fmt.Sprintf("%v", claims["nickname"]), f.dbORM)
+				dbUser, err = data.FindUserWithUsername(fmt.Sprintf("%v", claims["nickname"]), data.NewDB(f.dbORM))
 				if err != nil {
 					log.Println(err)
 					next.ServeHTTP(w, r)

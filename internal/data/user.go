@@ -1,12 +1,11 @@
 package data
 
 import (
-	"github.com/StarWarsDev/legion-ops/internal/orm"
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
+	"github.com/jinzhu/gorm"
 )
 
-func FindUserWithUsername(username string, orm *orm.ORM) (user.User, error) {
-	db := orm.DB.New()
+func FindUserWithUsername(username string, db *gorm.DB) (user.User, error) {
 	var userRecord user.User
 	err := db.
 		Set("gorm:auto_preload", true).
@@ -17,8 +16,7 @@ func FindUserWithUsername(username string, orm *orm.ORM) (user.User, error) {
 	return userRecord, err
 }
 
-func GetUser(userID string, orm *orm.ORM) (user.User, error) {
-	db := orm.DB.New()
+func GetUser(userID string, db *gorm.DB) (user.User, error) {
 	var dbUser user.User
 	err := db.
 		Set("gorm:auto_preload", true).

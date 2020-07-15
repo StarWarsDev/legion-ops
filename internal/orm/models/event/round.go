@@ -3,6 +3,8 @@ package event
 import (
 	"time"
 
+	"github.com/StarWarsDev/legion-ops/internal/constants"
+
 	"github.com/StarWarsDev/legion-ops/internal/orm/models"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -18,21 +20,29 @@ type Round struct {
 	Matches   []Match
 }
 
-func (record *Round) BeforeCreate(scope *gorm.Scope) error {
-	id, err := models.GenerateUUID()
-	if err != nil {
-		return err
+func (record *Round) BeforeSave(scope *gorm.Scope) error {
+	var err error
+	if record.ID.String() == constants.BlankUUID {
+		id, err := models.GenerateUUID()
+		if err != nil {
+			return err
+		}
+
+		err = scope.SetColumn("ID", id)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = scope.SetColumn("ID", id)
-	if err != nil {
-		return err
-	}
 	unixNow := time.Now().UTC().Unix()
-	err = scope.SetColumn("CreatedAt", unixNow)
-	if err != nil {
-		return err
+
+	if record.CreatedAt == 0 {
+		err = scope.SetColumn("CreatedAt", unixNow)
+		if err != nil {
+			return err
+		}
 	}
+
 	err = scope.SetColumn("UpdatedAt", unixNow)
 	return err
 }
