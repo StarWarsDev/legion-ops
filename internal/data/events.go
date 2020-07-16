@@ -56,17 +56,6 @@ func GetDayWithID(id string, db *gorm.DB) (event.Day, error) {
 	return day, err
 }
 
-func GetDayWithIDForEvent(id string, evt *event.Event, db *gorm.DB) (event.Day, error) {
-	var day event.Day
-	err := db.
-		Set("gorm:auto_preload", true).
-		Select("*").
-		Where("id=? and event_id=?", id, evt.ID.String()).
-		First(&day).
-		Error
-	return day, err
-}
-
 func GetRoundWithIDForDay(id string, day *event.Day, db *gorm.DB) (event.Round, error) {
 	var round event.Round
 	err := db.
@@ -282,145 +271,9 @@ func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event
 
 		// manage days
 		for _, dayIn := range input.Days {
-			if dayIn == nil {
-				return errors.New("day input is invalid")
-			}
-
-			if dayIn.ID == nil {
-				return errors.New("day input id is missing")
-			}
-			day, err := GetDayWithIDForEvent(*dayIn.ID, &dbEvent, tx)
+			_, err = UpdateDay(dayIn, tx)
 			if err != nil {
 				return err
-			}
-			start, err := time.Parse(time.RFC3339, dayIn.StartAt)
-			if err != nil {
-				return err
-			}
-
-			end, err := time.Parse(time.RFC3339, dayIn.EndAt)
-			if err != nil {
-				return err
-			}
-
-			day.StartAt = start.UTC().Unix()
-			day.EndAt = end.UTC().Unix()
-
-			err = tx.Save(&day).Error
-			if err != nil {
-				return err
-			}
-
-			// manage rounds for this day
-			for _, roundIn := range dayIn.Rounds {
-				if roundIn == nil {
-					return errors.New("round input is invalid")
-				}
-
-				if roundIn.ID == nil {
-					return errors.New("round input id is missing")
-				}
-
-				round, err := GetRoundWithIDForDay(*roundIn.ID, &day, tx)
-				if err != nil {
-					return err
-				}
-
-				// TODO: allow for the counter to be modified here?
-
-				// manage this round's matches
-				for _, matchIn := range roundIn.Matches {
-					if matchIn == nil {
-						return errors.New("match input is invalid")
-					}
-
-					if matchIn.ID == nil {
-						return errors.New("match input id is missing")
-					}
-
-					match, err := GetMatchWithIDForRound(*matchIn.ID, &round, tx)
-					if err != nil {
-						return err
-					}
-
-					player1, err := GetUser(matchIn.Player1, tx)
-					if err != nil {
-						return err
-					}
-
-					player2, err := GetUser(matchIn.Player2, tx)
-					if err != nil {
-						return err
-					}
-
-					// match players
-					if match.Player1.ID != player1.ID {
-						match.Player1 = player1
-					}
-
-					if match.Player2.ID != player2.ID {
-						match.Player2 = player2
-					}
-
-					// player victory points
-					if matchIn.Player1VictoryPoints != nil && match.Player1VictoryPoints != *matchIn.Player1VictoryPoints {
-						match.Player1VictoryPoints = *matchIn.Player1VictoryPoints
-					}
-
-					if matchIn.Player2VictoryPoints != nil && match.Player2VictoryPoints != *matchIn.Player2VictoryPoints {
-						match.Player2VictoryPoints = *matchIn.Player2VictoryPoints
-					}
-
-					// player margin of victory
-					if matchIn.Player1MarginOfVictory != nil && match.Player1MarginOfVictory != *matchIn.Player1MarginOfVictory {
-						match.Player1MarginOfVictory = *matchIn.Player1MarginOfVictory
-					}
-
-					if matchIn.Player2MarginOfVictory != nil && match.Player2MarginOfVictory != *matchIn.Player2MarginOfVictory {
-						match.Player2MarginOfVictory = *matchIn.Player2MarginOfVictory
-					}
-
-					// blue player
-					if matchIn.Blue != nil {
-						blue, err := GetUser(*matchIn.Blue, tx)
-						if err != nil {
-							return err
-						}
-
-						if match.Blue == nil || match.Blue.ID != blue.ID {
-							match.Blue = &blue
-						}
-					}
-
-					// winner
-					if matchIn.Winner != nil {
-						winner, err := GetUser(*matchIn.Winner, tx)
-						if err != nil {
-							return err
-						}
-
-						if match.Winner == nil || match.Winner.ID != winner.ID {
-							match.Winner = &winner
-						}
-					}
-
-					// bye
-					if matchIn.Bye != nil {
-						bye, err := GetUser(*matchIn.Bye, tx)
-						if err != nil {
-							return err
-						}
-
-						if match.Bye == nil || match.Bye.ID != bye.ID {
-							match.Bye = &bye
-						}
-					}
-
-					err = tx.Save(&match).Error
-					if err != nil {
-						return err
-					}
-				}
 			}
 		}
 
@@ -549,6 +402,153 @@ func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (
 	})
 
 	return eventDay, err
+}
+
+func UpdateDay(input *gqlModel.EventDayInput, db *gorm.DB) (event.Day, error) {
+	var dayOut event.Day
+
+	if input == nil {
+		return dayOut, errors.New("day input is invalid")
+	}
+
+	if input.ID == nil {
+		return dayOut, errors.New("day input id is missing")
+	}
+	day, err := GetDayWithID(*input.ID, db)
+	if err != nil {
+		return dayOut, err
+	}
+	start, err := time.Parse(time.RFC3339, input.StartAt)
+	if err != nil {
+		return dayOut, err
+	}
+
+	end, err := time.Parse(time.RFC3339, input.EndAt)
+	if err != nil {
+		return dayOut, err
+	}
+
+	day.StartAt = start.UTC().Unix()
+	day.EndAt = end.UTC().Unix()
+
+	err = db.Save(&day).Error
+	if err != nil {
+		return dayOut, err
+	}
+
+	// manage rounds for this day
+	for _, roundIn := range input.Rounds {
+		if roundIn == nil {
+			return dayOut, errors.New("round input is invalid")
+		}
+
+		if roundIn.ID == nil {
+			return dayOut, errors.New("round input id is missing")
+		}
+
+		round, err := GetRoundWithIDForDay(*roundIn.ID, &day, db)
+		if err != nil {
+			return dayOut, err
+		}
+
+		// TODO: allow for the counter to be modified here?
+
+		// manage this round's matches
+		for _, matchIn := range roundIn.Matches {
+			if matchIn == nil {
+				return dayOut, errors.New("match input is invalid")
+			}
+
+			if matchIn.ID == nil {
+				return dayOut, errors.New("match input id is missing")
+			}
+
+			match, err := GetMatchWithIDForRound(*matchIn.ID, &round, db)
+			if err != nil {
+				return dayOut, err
+			}
+
+			player1, err := GetUser(matchIn.Player1, db)
+			if err != nil {
+				return dayOut, err
+			}
+
+			player2, err := GetUser(matchIn.Player2, db)
+			if err != nil {
+				return dayOut, err
+			}
+
+			// match players
+			if match.Player1.ID != player1.ID {
+				match.Player1 = player1
+			}
+
+			if match.Player2.ID != player2.ID {
+				match.Player2 = player2
+			}
+
+			// player victory points
+			if matchIn.Player1VictoryPoints != nil && match.Player1VictoryPoints != *matchIn.Player1VictoryPoints {
+				match.Player1VictoryPoints = *matchIn.Player1VictoryPoints
+			}
+
+			if matchIn.Player2VictoryPoints != nil && match.Player2VictoryPoints != *matchIn.Player2VictoryPoints {
+				match.Player2VictoryPoints = *matchIn.Player2VictoryPoints
+			}
+
+			// player margin of victory
+			if matchIn.Player1MarginOfVictory != nil && match.Player1MarginOfVictory != *matchIn.Player1MarginOfVictory {
+				match.Player1MarginOfVictory = *matchIn.Player1MarginOfVictory
+			}
+
+			if matchIn.Player2MarginOfVictory != nil && match.Player2MarginOfVictory != *matchIn.Player2MarginOfVictory {
+				match.Player2MarginOfVictory = *matchIn.Player2MarginOfVictory
+			}
+
+			// blue player
+			if matchIn.Blue != nil {
+				blue, err := GetUser(*matchIn.Blue, db)
+				if err != nil {
+					return dayOut, err
+				}
+
+				if match.Blue == nil || match.Blue.ID != blue.ID {
+					match.Blue = &blue
+				}
+			}
+
+			// winner
+			if matchIn.Winner != nil {
+				winner, err := GetUser(*matchIn.Winner, db)
+				if err != nil {
+					return dayOut, err
+				}
+
+				if match.Winner == nil || match.Winner.ID != winner.ID {
+					match.Winner = &winner
+				}
+			}
+
+			// bye
+			if matchIn.Bye != nil {
+				bye, err := GetUser(*matchIn.Bye, db)
+				if err != nil {
+					return dayOut, err
+				}
+
+				if match.Bye == nil || match.Bye.ID != bye.ID {
+					match.Bye = &bye
+				}
+			}
+
+			err = db.Save(&match).Error
+			if err != nil {
+				return dayOut, err
+			}
+		}
+	}
+
+	return GetDayWithID(*input.ID, db)
 }
 
 func DeleteDay(id string, orm *orm.ORM) (bool, error) {
