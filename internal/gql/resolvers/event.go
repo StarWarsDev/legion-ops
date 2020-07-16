@@ -225,7 +225,23 @@ func (r *mutationResolver) CreateRound(ctx context.Context, roundInput models.Ro
 }
 
 func (r *mutationResolver) DeleteRound(ctx context.Context, roundID, eventID string) (bool, error) {
-	panic("not yet implemented")
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return false, errors.New("cannot delete round, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return false, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return false, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	return data.DeleteRound(roundID, r.ORM)
 }
 
 // matches
