@@ -45,6 +45,17 @@ func GetEventWithID(eventID string, db *gorm.DB) (event.Event, error) {
 	return dbEvent, err
 }
 
+func GetDayWithID(id string, db *gorm.DB) (event.Day, error) {
+	var day event.Day
+	err := db.
+		Set("gorm:auto_preload", true).
+		Select("*").
+		Where("id=?", id).
+		First(&day).
+		Error
+	return day, err
+}
+
 func GetDayWithIDForEvent(id string, evt *event.Event, db *gorm.DB) (event.Day, error) {
 	var day event.Day
 	err := db.
@@ -538,4 +549,21 @@ func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (
 	})
 
 	return eventDay, err
+}
+
+func DeleteDay(id string, orm *orm.ORM) (bool, error) {
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		day, err := GetDayWithID(id, tx)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Delete(&day).Error
+
+		return err
+	})
+
+	return err == nil, err
 }

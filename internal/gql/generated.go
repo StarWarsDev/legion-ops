@@ -82,15 +82,15 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateDay   func(childComplexity int, input models.EventDayInput, eventID string) int
 		CreateEvent func(childComplexity int, input models.EventInput) int
-		CreateMatch func(childComplexity int, input models.MatchInput, roundID string) int
-		CreateRound func(childComplexity int, input models.RoundInput, dayID string) int
-		DeleteDay   func(childComplexity int, dayID string) int
+		CreateMatch func(childComplexity int, input models.MatchInput, roundID string, eventID string) int
+		CreateRound func(childComplexity int, input models.RoundInput, dayID string, eventID string) int
+		DeleteDay   func(childComplexity int, dayID string, eventID string) int
 		DeleteEvent func(childComplexity int, eventID string) int
-		DeleteMatch func(childComplexity int, matchID string) int
-		DeleteRound func(childComplexity int, roundID string) int
-		UpdateDay   func(childComplexity int, input models.EventDayInput) int
+		DeleteMatch func(childComplexity int, matchID string, eventID string) int
+		DeleteRound func(childComplexity int, roundID string, eventID string) int
+		UpdateDay   func(childComplexity int, input models.EventDayInput, eventID string) int
 		UpdateEvent func(childComplexity int, input models.EventInput) int
-		UpdateMatch func(childComplexity int, input models.MatchInput) int
+		UpdateMatch func(childComplexity int, input models.MatchInput, eventID string) int
 	}
 
 	Profile struct {
@@ -121,13 +121,13 @@ type MutationResolver interface {
 	UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
 	DeleteEvent(ctx context.Context, eventID string) (bool, error)
 	CreateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
-	UpdateDay(ctx context.Context, input models.EventDayInput) (*models.EventDay, error)
-	DeleteDay(ctx context.Context, dayID string) (bool, error)
-	CreateRound(ctx context.Context, input models.RoundInput, dayID string) (*models.Round, error)
-	DeleteRound(ctx context.Context, roundID string) (bool, error)
-	CreateMatch(ctx context.Context, input models.MatchInput, roundID string) (*models.Match, error)
-	UpdateMatch(ctx context.Context, input models.MatchInput) (*models.Match, error)
-	DeleteMatch(ctx context.Context, matchID string) (bool, error)
+	UpdateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
+	DeleteDay(ctx context.Context, dayID string, eventID string) (bool, error)
+	CreateRound(ctx context.Context, input models.RoundInput, dayID string, eventID string) (*models.Round, error)
+	DeleteRound(ctx context.Context, roundID string, eventID string) (bool, error)
+	CreateMatch(ctx context.Context, input models.MatchInput, roundID string, eventID string) (*models.Match, error)
+	UpdateMatch(ctx context.Context, input models.MatchInput, eventID string) (*models.Match, error)
+	DeleteMatch(ctx context.Context, matchID string, eventID string) (bool, error)
 }
 type QueryResolver interface {
 	Events(ctx context.Context, user *string, max *int) ([]*models.Event, error)
@@ -365,7 +365,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateMatch(childComplexity, args["input"].(models.MatchInput), args["roundID"].(string)), true
+		return e.complexity.Mutation.CreateMatch(childComplexity, args["input"].(models.MatchInput), args["roundID"].(string), args["eventID"].(string)), true
 
 	case "Mutation.createRound":
 		if e.complexity.Mutation.CreateRound == nil {
@@ -377,7 +377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateRound(childComplexity, args["input"].(models.RoundInput), args["dayID"].(string)), true
+		return e.complexity.Mutation.CreateRound(childComplexity, args["input"].(models.RoundInput), args["dayID"].(string), args["eventID"].(string)), true
 
 	case "Mutation.deleteDay":
 		if e.complexity.Mutation.DeleteDay == nil {
@@ -389,7 +389,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteDay(childComplexity, args["dayID"].(string)), true
+		return e.complexity.Mutation.DeleteDay(childComplexity, args["dayID"].(string), args["eventID"].(string)), true
 
 	case "Mutation.deleteEvent":
 		if e.complexity.Mutation.DeleteEvent == nil {
@@ -413,7 +413,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteMatch(childComplexity, args["matchID"].(string)), true
+		return e.complexity.Mutation.DeleteMatch(childComplexity, args["matchID"].(string), args["eventID"].(string)), true
 
 	case "Mutation.deleteRound":
 		if e.complexity.Mutation.DeleteRound == nil {
@@ -425,7 +425,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteRound(childComplexity, args["roundID"].(string)), true
+		return e.complexity.Mutation.DeleteRound(childComplexity, args["roundID"].(string), args["eventID"].(string)), true
 
 	case "Mutation.updateDay":
 		if e.complexity.Mutation.UpdateDay == nil {
@@ -437,7 +437,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateDay(childComplexity, args["input"].(models.EventDayInput)), true
+		return e.complexity.Mutation.UpdateDay(childComplexity, args["input"].(models.EventDayInput), args["eventID"].(string)), true
 
 	case "Mutation.updateEvent":
 		if e.complexity.Mutation.UpdateEvent == nil {
@@ -461,7 +461,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMatch(childComplexity, args["input"].(models.MatchInput)), true
+		return e.complexity.Mutation.UpdateMatch(childComplexity, args["input"].(models.MatchInput), args["eventID"].(string)), true
 
 	case "Profile.account":
 		if e.complexity.Profile.Account == nil {
@@ -668,17 +668,17 @@ type Mutation {
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
-    updateDay(input: EventDayInput!): EventDay!
-    deleteDay(dayID: ID!): Boolean!
+    updateDay(input: EventDayInput!, eventID: ID!): EventDay!
+    deleteDay(dayID: ID!, eventID: ID!): Boolean!
 
     # rounds
-    createRound(input: RoundInput!, dayID: ID!): Round!
-    deleteRound(roundID: ID!): Boolean!
+    createRound(input: RoundInput!, dayID: ID!, eventID: ID!): Round!
+    deleteRound(roundID: ID!, eventID: ID!): Boolean!
 
     # matches
-    createMatch(input: MatchInput!, roundID: ID!): Match!
-    updateMatch(input: MatchInput!): Match!
-    deleteMatch(matchID: ID!): Boolean!
+    createMatch(input: MatchInput!, roundID: ID!, eventID: ID!): Match!
+    updateMatch(input: MatchInput!, eventID: ID!): Match!
+    deleteMatch(matchID: ID!, eventID: ID!): Boolean!
 }
 
 type Query {
@@ -796,6 +796,14 @@ func (ec *executionContext) field_Mutation_createMatch_args(ctx context.Context,
 		}
 	}
 	args["roundID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg2
 	return args, nil
 }
 
@@ -818,6 +826,14 @@ func (ec *executionContext) field_Mutation_createRound_args(ctx context.Context,
 		}
 	}
 	args["dayID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg2
 	return args, nil
 }
 
@@ -832,6 +848,14 @@ func (ec *executionContext) field_Mutation_deleteDay_args(ctx context.Context, r
 		}
 	}
 	args["dayID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg1
 	return args, nil
 }
 
@@ -860,6 +884,14 @@ func (ec *executionContext) field_Mutation_deleteMatch_args(ctx context.Context,
 		}
 	}
 	args["matchID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg1
 	return args, nil
 }
 
@@ -874,6 +906,14 @@ func (ec *executionContext) field_Mutation_deleteRound_args(ctx context.Context,
 		}
 	}
 	args["roundID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg1
 	return args, nil
 }
 
@@ -888,6 +928,14 @@ func (ec *executionContext) field_Mutation_updateDay_args(ctx context.Context, r
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg1
 	return args, nil
 }
 
@@ -916,6 +964,14 @@ func (ec *executionContext) field_Mutation_updateMatch_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["eventID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventID"] = arg1
 	return args, nil
 }
 
@@ -2143,7 +2199,7 @@ func (ec *executionContext) _Mutation_updateDay(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateDay(rctx, args["input"].(models.EventDayInput))
+		return ec.resolvers.Mutation().UpdateDay(rctx, args["input"].(models.EventDayInput), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2187,7 +2243,7 @@ func (ec *executionContext) _Mutation_deleteDay(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteDay(rctx, args["dayID"].(string))
+		return ec.resolvers.Mutation().DeleteDay(rctx, args["dayID"].(string), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2231,7 +2287,7 @@ func (ec *executionContext) _Mutation_createRound(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRound(rctx, args["input"].(models.RoundInput), args["dayID"].(string))
+		return ec.resolvers.Mutation().CreateRound(rctx, args["input"].(models.RoundInput), args["dayID"].(string), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2275,7 +2331,7 @@ func (ec *executionContext) _Mutation_deleteRound(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteRound(rctx, args["roundID"].(string))
+		return ec.resolvers.Mutation().DeleteRound(rctx, args["roundID"].(string), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2319,7 +2375,7 @@ func (ec *executionContext) _Mutation_createMatch(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateMatch(rctx, args["input"].(models.MatchInput), args["roundID"].(string))
+		return ec.resolvers.Mutation().CreateMatch(rctx, args["input"].(models.MatchInput), args["roundID"].(string), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2363,7 +2419,7 @@ func (ec *executionContext) _Mutation_updateMatch(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateMatch(rctx, args["input"].(models.MatchInput))
+		return ec.resolvers.Mutation().UpdateMatch(rctx, args["input"].(models.MatchInput), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2407,7 +2463,7 @@ func (ec *executionContext) _Mutation_deleteMatch(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteMatch(rctx, args["matchID"].(string))
+		return ec.resolvers.Mutation().DeleteMatch(rctx, args["matchID"].(string), args["eventID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

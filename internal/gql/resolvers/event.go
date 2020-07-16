@@ -151,32 +151,48 @@ func (r *mutationResolver) CreateDay(ctx context.Context, dayInput models.EventD
 	return mapper.GQLEventDay(&newDay), nil
 }
 
-func (r *mutationResolver) UpdateDay(ctx context.Context, dayInput models.EventDayInput) (*models.EventDay, error) {
+func (r *mutationResolver) UpdateDay(ctx context.Context, dayInput models.EventDayInput, eventID string) (*models.EventDay, error) {
 	panic("not yet implemented")
 }
 
-func (r *mutationResolver) DeleteDay(ctx context.Context, dayID string) (bool, error) {
-	panic("not yet implemented")
+func (r *mutationResolver) DeleteDay(ctx context.Context, dayID, eventID string) (bool, error) {
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return false, errors.New("cannot delete event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return false, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return false, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	return data.DeleteDay(dayID, r.ORM)
 }
 
 // rounds
-func (r *mutationResolver) CreateRound(ctx context.Context, roundInput models.RoundInput, dayID string) (*models.Round, error) {
+func (r *mutationResolver) CreateRound(ctx context.Context, roundInput models.RoundInput, dayID, eventID string) (*models.Round, error) {
 	panic("not yet implemented")
 }
 
-func (r *mutationResolver) DeleteRound(ctx context.Context, roundID string) (bool, error) {
+func (r *mutationResolver) DeleteRound(ctx context.Context, roundID, eventID string) (bool, error) {
 	panic("not yet implemented")
 }
 
 // matches
-func (r *mutationResolver) CreateMatch(ctx context.Context, matchInput models.MatchInput, roundID string) (*models.Match, error) {
+func (r *mutationResolver) CreateMatch(ctx context.Context, matchInput models.MatchInput, roundID, eventID string) (*models.Match, error) {
 	panic("not yet implemented")
 }
 
-func (r *mutationResolver) UpdateMatch(ctx context.Context, matchInput models.MatchInput) (*models.Match, error) {
+func (r *mutationResolver) UpdateMatch(ctx context.Context, matchInput models.MatchInput, eventID string) (*models.Match, error) {
 	panic("not yet implemented")
 }
 
-func (r *mutationResolver) DeleteMatch(ctx context.Context, matchID string) (bool, error) {
+func (r *mutationResolver) DeleteMatch(ctx context.Context, matchID, eventID string) (bool, error) {
 	panic("not yet implemented")
 }
