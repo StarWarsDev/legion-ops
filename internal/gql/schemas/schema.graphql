@@ -66,17 +66,17 @@ type Mutation {
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
-    updateDay(input: EventDayInput!): EventDay!
-    deleteDay(dayID: ID!): Boolean!
+    updateDay(input: EventDayInput!, eventID: ID!): EventDay!
+    deleteDay(dayID: ID!, eventID: ID!): Boolean!
 
     # rounds
-    createRound(input: RoundInput!, dayID: ID!): Round!
-    deleteRound(roundID: ID!): Boolean!
+    createRound(input: RoundInput!, dayID: ID!, eventID: ID!): Round!
+    deleteRound(roundID: ID!, eventID: ID!): Boolean!
 
     # matches
-    createMatch(input: MatchInput!, roundID: ID!): Match!
-    updateMatch(input: MatchInput!): Match!
-    deleteMatch(matchID: ID!): Boolean!
+    createMatch(input: MatchInput!, roundID: ID!, eventID: ID!): Match!
+    updateMatch(input: MatchInput!, eventID: ID!): Match!
+    deleteMatch(matchID: ID!, eventID: ID!): Boolean!
 }
 
 type Query {
