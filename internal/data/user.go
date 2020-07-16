@@ -5,6 +5,12 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+func CreateUser(userIn user.User, db *gorm.DB) (user.User, error) {
+	userOut := userIn
+	err := db.Create(&userOut).Error
+	return userOut, err
+}
+
 func FindUserWithUsername(username string, db *gorm.DB) (user.User, error) {
 	var userRecord user.User
 	err := db.

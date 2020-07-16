@@ -9,6 +9,10 @@ interface Record {
     updatedAt: Date!
 }
 
+type Profile {
+    account: User!
+}
+
 # EventType helps to indicate an event's type.
 enum EventType {
     # Indicates a League event
@@ -62,6 +66,7 @@ type Mutation {
 
 type Query {
     events(user: ID, max: Int=10): [Event!]!
+    myProfile: Profile!
 }
 
 type Round {

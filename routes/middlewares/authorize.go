@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
 
 	"github.com/StarWarsDev/legion-ops/internal/data"
@@ -99,11 +101,38 @@ func (f *MiddlewareFuncs) Authorize(next http.Handler) http.Handler {
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				// if valid, look up user in DB and set them in context
-				dbUser, err = data.FindUserWithUsername(fmt.Sprintf("%v", claims["nickname"]), data.NewDB(f.dbORM))
+				nickname := fmt.Sprintf("%v", claims["nickname"])
+				dbUser, err = data.FindUserWithUsername(nickname, data.NewDB(f.dbORM))
 				if err != nil {
-					log.Println(err)
-					next.ServeHTTP(w, r)
-					return
+					if err.Error() == "record not found" {
+						// TODO: create the user
+						db := data.NewDB(f.dbORM)
+						err := db.Transaction(func(tx *gorm.DB) error {
+							newUser, err := data.CreateUser(user.User{
+								Username: nickname,
+								Name:     fmt.Sprintf("%v", claims["name"]),
+								Picture:  fmt.Sprintf("%v", claims["picture"]),
+							}, tx)
+
+							if err != nil {
+								return err
+							}
+
+							dbUser = newUser
+							return nil
+						})
+
+						if err != nil {
+							log.Println(err)
+							next.ServeHTTP(w, r)
+							return
+						}
+					} else {
+						// was some other kind of error
+						log.Println(err)
+						next.ServeHTTP(w, r)
+						return
+					}
 				}
 
 				// if the user doesn't have a picture in the database use the one in the claims

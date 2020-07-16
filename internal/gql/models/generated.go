@@ -81,6 +81,10 @@ type MatchInput struct {
 	Winner                 *string `json:"winner"`
 }
 
+type Profile struct {
+	Account *User `json:"account"`
+}
+
 type Round struct {
 	Counter int      `json:"counter"`
 	ID      string   `json:"id"`
