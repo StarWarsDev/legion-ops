@@ -13,8 +13,8 @@ var SeedUsers *gormigrate.Migration = &gormigrate.Migration{
 	ID: "SEED_USERS",
 	Migrate: func(db *gorm.DB) error {
 		adminUser := user.User{
-			Username: "sgood",
-			Name:     "Steve Good",
+			Username: "admin",
+			Name:     "Admin User",
 			Picture:  "https://i.pinimg.com/originals/74/2a/93/742a935b67da21d21b46a44d2de4591a.jpg",
 		}
 		err := db.Debug().Create(&adminUser).Error

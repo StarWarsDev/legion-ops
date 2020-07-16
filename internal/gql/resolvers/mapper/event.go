@@ -30,42 +30,54 @@ func GQLEvent(eventIn *event.Event) *models.Event {
 	}
 
 	for _, day := range eventIn.Days {
-		dayOut := models.EventDay{
-			CreatedAt: time.Unix(day.CreatedAt, 0).String(),
-			EndAt:     time.Unix(day.EndAt, 0).String(),
-			ID:        day.ID.String(),
-			UpdatedAt: time.Unix(day.UpdatedAt, 0).String(),
-			Rounds:    nil,
-			StartAt:   time.Unix(day.StartAt, 0).String(),
-		}
-
-		for _, round := range day.Rounds {
-			roundOut := models.Round{
-				ID:      round.ID.String(),
-				Counter: round.Counter,
-				Matches: nil,
-			}
-
-			for _, match := range round.Matches {
-				roundOut.Matches = append(roundOut.Matches, &models.Match{
-					ID:                     match.ID.String(),
-					Player1:                GQLUser(&match.Player1),
-					Player1VictoryPoints:   match.Player1VictoryPoints,
-					Player1MarginOfVictory: match.Player1MarginOfVictory,
-					Player2:                GQLUser(&match.Player2),
-					Player2VictoryPoints:   match.Player2VictoryPoints,
-					Player2MarginOfVictory: match.Player2MarginOfVictory,
-					Bye:                    GQLUser(match.Bye),
-					Blue:                   GQLUser(match.Blue),
-					Winner:                 GQLUser(match.Winner),
-				})
-			}
-
-			dayOut.Rounds = append(dayOut.Rounds, &roundOut)
-		}
-
-		eventOut.Days = append(eventOut.Days, &dayOut)
+		eventOut.Days = append(eventOut.Days, GQLEventDay(&day))
 	}
 
 	return &eventOut
+}
+
+func GQLEventDay(day *event.Day) *models.EventDay {
+	dayOut := models.EventDay{
+		CreatedAt: time.Unix(day.CreatedAt, 0).String(),
+		EndAt:     time.Unix(day.EndAt, 0).String(),
+		ID:        day.ID.String(),
+		UpdatedAt: time.Unix(day.UpdatedAt, 0).String(),
+		Rounds:    nil,
+		StartAt:   time.Unix(day.StartAt, 0).String(),
+	}
+
+	for _, round := range day.Rounds {
+		dayOut.Rounds = append(dayOut.Rounds, GQLRound(&round))
+	}
+
+	return &dayOut
+}
+
+func GQLRound(round *event.Round) *models.Round {
+	roundOut := models.Round{
+		ID:      round.ID.String(),
+		Counter: round.Counter,
+		Matches: nil,
+	}
+
+	for _, match := range round.Matches {
+		roundOut.Matches = append(roundOut.Matches, GQLMatch(&match))
+	}
+
+	return &roundOut
+}
+
+func GQLMatch(match *event.Match) *models.Match {
+	return &models.Match{
+		ID:                     match.ID.String(),
+		Player1:                GQLUser(&match.Player1),
+		Player1VictoryPoints:   match.Player1VictoryPoints,
+		Player1MarginOfVictory: match.Player1MarginOfVictory,
+		Player2:                GQLUser(&match.Player2),
+		Player2VictoryPoints:   match.Player2VictoryPoints,
+		Player2MarginOfVictory: match.Player2MarginOfVictory,
+		Bye:                    GQLUser(match.Bye),
+		Blue:                   GQLUser(match.Blue),
+		Winner:                 GQLUser(match.Winner),
+	}
 }

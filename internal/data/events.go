@@ -440,3 +440,102 @@ func DeleteEventWithID(id string, orm *orm.ORM) (bool, error) {
 
 	return err == nil, err
 }
+
+// days
+
+func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (event.Day, error) {
+	var eventDay event.Day
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		dbEvent, err := GetEventWithID(eventID, tx)
+		if err != nil {
+			return err
+		}
+
+		start, err := time.Parse(time.RFC3339, dayInput.StartAt)
+		if err != nil {
+			return err
+		}
+
+		end, err := time.Parse(time.RFC3339, dayInput.EndAt)
+		if err != nil {
+			return err
+		}
+
+		eventDay = event.Day{
+			StartAt: start.UTC().Unix(),
+			EndAt:   end.UTC().Unix(),
+			Event:   dbEvent,
+		}
+
+		for r, round := range dayInput.Rounds {
+			dbRound := event.Round{
+				Counter: r,
+			}
+
+			for _, match := range round.Matches {
+				p1, err := GetUser(match.Player1, tx)
+				if err != nil {
+					return err
+				}
+
+				p2, err := GetUser(match.Player2, tx)
+				if err != nil {
+					return err
+				}
+				dbMatch := event.Match{
+					Player1: p1,
+					Player2: p2,
+				}
+
+				if match.Player1MarginOfVictory != nil {
+					dbMatch.Player1MarginOfVictory = *match.Player1MarginOfVictory
+				}
+
+				if match.Player1VictoryPoints != nil {
+					dbMatch.Player1VictoryPoints = *match.Player1VictoryPoints
+				}
+
+				if match.Player2VictoryPoints != nil {
+					dbMatch.Player2VictoryPoints = *match.Player2VictoryPoints
+				}
+
+				if match.Player2MarginOfVictory != nil {
+					dbMatch.Player2MarginOfVictory = *match.Player2MarginOfVictory
+				}
+
+				if match.Blue != nil && *match.Blue != "" {
+					blue, err := GetUser(*match.Blue, tx)
+					if err != nil {
+						return err
+					}
+					dbMatch.Blue = &blue
+				}
+
+				if match.Bye != nil && *match.Bye != "" {
+					bye, err := GetUser(*match.Bye, tx)
+					if err != nil {
+						return err
+					}
+					dbMatch.Bye = &bye
+				}
+
+				if match.Winner != nil && *match.Winner != "" {
+					winner, err := GetUser(*match.Winner, tx)
+					if err != nil {
+						return err
+					}
+					dbMatch.Winner = &winner
+				}
+				dbRound.Matches = append(dbRound.Matches, dbMatch)
+			}
+			eventDay.Rounds = append(eventDay.Rounds, dbRound)
+		}
+
+		// save the day
+		return tx.Create(&eventDay).Error
+	})
+
+	return eventDay, err
+}
