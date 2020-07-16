@@ -52,6 +52,7 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 }
 
 // Mutation
+// events
 func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
 	dbUser := middlewares.UserInContext(ctx)
 	if dbUser == nil || dbUser.Username == "" {
@@ -72,6 +73,7 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, input models.EventIn
 
 	return eventOut, nil
 }
+
 func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error) {
 	if input.ID == nil {
 		return nil, errors.New("event id is required")
@@ -101,6 +103,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventIn
 
 	return eventOut, nil
 }
+
 func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (bool, error) {
 	dbUser := middlewares.UserInContext(ctx)
 	if dbUser.Username == "" {
@@ -118,4 +121,62 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 	}
 
 	return data.DeleteEventWithID(eventID, r.ORM)
+}
+
+// days
+func (r *mutationResolver) CreateDay(ctx context.Context, dayInput models.EventDayInput, eventID string) (*models.EventDay, error) {
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot delete event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		log.Println(dbEvent.Organizer.Username, dbUser.Username)
+		return nil, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	// create the new day
+	newDay, err := data.CreateDay(&dayInput, eventID, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.GQLEventDay(&newDay), nil
+}
+
+func (r *mutationResolver) UpdateDay(ctx context.Context, dayInput models.EventDayInput) (*models.EventDay, error) {
+	panic("not yet implemented")
+}
+
+func (r *mutationResolver) DeleteDay(ctx context.Context, dayID string) (bool, error) {
+	panic("not yet implemented")
+}
+
+// rounds
+func (r *mutationResolver) CreateRound(ctx context.Context, roundInput models.RoundInput, dayID string) (*models.Round, error) {
+	panic("not yet implemented")
+}
+
+func (r *mutationResolver) DeleteRound(ctx context.Context, roundID string) (bool, error) {
+	panic("not yet implemented")
+}
+
+// matches
+func (r *mutationResolver) CreateMatch(ctx context.Context, matchInput models.MatchInput, roundID string) (*models.Match, error) {
+	panic("not yet implemented")
+}
+
+func (r *mutationResolver) UpdateMatch(ctx context.Context, matchInput models.MatchInput) (*models.Match, error) {
+	panic("not yet implemented")
+}
+
+func (r *mutationResolver) DeleteMatch(ctx context.Context, matchID string) (bool, error) {
+	panic("not yet implemented")
 }

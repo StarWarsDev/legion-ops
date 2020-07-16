@@ -59,9 +59,24 @@ type Match {
 }
 
 type Mutation {
+    # events
     createEvent(input: EventInput!): Event!
     updateEvent(input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
+
+    # days
+    createDay(input: EventDayInput!, eventID: ID!): EventDay!
+    updateDay(input: EventDayInput!): EventDay!
+    deleteDay(dayID: ID!): Boolean!
+
+    # rounds
+    createRound(input: RoundInput!, dayID: ID!): Round!
+    deleteRound(roundID: ID!): Boolean!
+
+    # matches
+    createMatch(input: MatchInput!, roundID: ID!): Match!
+    updateMatch(input: MatchInput!): Match!
+    deleteMatch(matchID: ID!): Boolean!
 }
 
 type Query {
