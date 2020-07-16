@@ -652,3 +652,20 @@ func CreateRound(roundInput *gqlModel.RoundInput, dayID string, orm *orm.ORM) (e
 
 	return newRound, nil
 }
+
+func DeleteRound(id string, orm *orm.ORM) (bool, error) {
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		round, err := GetRoundWithID(id, tx)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Delete(&round).Error
+
+		return err
+	})
+
+	return err == nil, err
+}
