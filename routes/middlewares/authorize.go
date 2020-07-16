@@ -101,15 +101,15 @@ func (f *MiddlewareFuncs) Authorize(next http.Handler) http.Handler {
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				// if valid, look up user in DB and set them in context
-				nickname := fmt.Sprintf("%v", claims["nickname"])
-				dbUser, err = data.FindUserWithUsername(nickname, data.NewDB(f.dbORM))
+				email := fmt.Sprintf("%v", claims["email"])
+				dbUser, err = data.FindUserWithUsername(email, data.NewDB(f.dbORM))
 				if err != nil {
 					if err.Error() == "record not found" {
 						// TODO: create the user
 						db := data.NewDB(f.dbORM)
 						err := db.Transaction(func(tx *gorm.DB) error {
 							newUser, err := data.CreateUser(user.User{
-								Username: nickname,
+								Username: email,
 								Name:     fmt.Sprintf("%v", claims["name"]),
 								Picture:  fmt.Sprintf("%v", claims["picture"]),
 							}, tx)
