@@ -67,12 +67,12 @@ func GetRoundWithID(id string, db *gorm.DB) (event.Round, error) {
 	return round, err
 }
 
-func GetMatchWithIDForRound(id string, round *event.Round, db *gorm.DB) (event.Match, error) {
+func GetMatchWithID(id string, db *gorm.DB) (event.Match, error) {
 	var match event.Match
 	err := db.
 		Set("gorm:auto_preload", true).
 		Select("*").
-		Where("id=? and round_id=?", id, round.ID.String()).
+		Where("id=?", id).
 		First(&match).
 		Error
 	return match, err
@@ -438,110 +438,12 @@ func UpdateDay(input *gqlModel.EventDayInput, db *gorm.DB) (event.Day, error) {
 
 	// manage rounds for this day
 	for _, roundIn := range input.Rounds {
-		if roundIn == nil {
-			return dayOut, errors.New("round input is invalid")
-		}
-
-		if roundIn.ID == nil {
-			return dayOut, errors.New("round input id is missing")
-		}
-
-		round, err := GetRoundWithID(*roundIn.ID, db)
-		if err != nil {
-			return dayOut, err
-		}
-
-		// TODO: allow for the counter to be modified here?
+		// there really isn't anything to change for a round
+		// so lets skip down to the matches
 
 		// manage this round's matches
 		for _, matchIn := range roundIn.Matches {
-			if matchIn == nil {
-				return dayOut, errors.New("match input is invalid")
-			}
-
-			if matchIn.ID == nil {
-				return dayOut, errors.New("match input id is missing")
-			}
-
-			match, err := GetMatchWithIDForRound(*matchIn.ID, &round, db)
-			if err != nil {
-				return dayOut, err
-			}
-
-			player1, err := GetUser(matchIn.Player1, db)
-			if err != nil {
-				return dayOut, err
-			}
-
-			player2, err := GetUser(matchIn.Player2, db)
-			if err != nil {
-				return dayOut, err
-			}
-
-			// match players
-			if match.Player1.ID != player1.ID {
-				match.Player1 = player1
-			}
-
-			if match.Player2.ID != player2.ID {
-				match.Player2 = player2
-			}
-
-			// player victory points
-			if matchIn.Player1VictoryPoints != nil && match.Player1VictoryPoints != *matchIn.Player1VictoryPoints {
-				match.Player1VictoryPoints = *matchIn.Player1VictoryPoints
-			}
-
-			if matchIn.Player2VictoryPoints != nil && match.Player2VictoryPoints != *matchIn.Player2VictoryPoints {
-				match.Player2VictoryPoints = *matchIn.Player2VictoryPoints
-			}
-
-			// player margin of victory
-			if matchIn.Player1MarginOfVictory != nil && match.Player1MarginOfVictory != *matchIn.Player1MarginOfVictory {
-				match.Player1MarginOfVictory = *matchIn.Player1MarginOfVictory
-			}
-
-			if matchIn.Player2MarginOfVictory != nil && match.Player2MarginOfVictory != *matchIn.Player2MarginOfVictory {
-				match.Player2MarginOfVictory = *matchIn.Player2MarginOfVictory
-			}
-
-			// blue player
-			if matchIn.Blue != nil {
-				blue, err := GetUser(*matchIn.Blue, db)
-				if err != nil {
-					return dayOut, err
-				}
-
-				if match.Blue == nil || match.Blue.ID != blue.ID {
-					match.Blue = &blue
-				}
-			}
-
-			// winner
-			if matchIn.Winner != nil {
-				winner, err := GetUser(*matchIn.Winner, db)
-				if err != nil {
-					return dayOut, err
-				}
-
-				if match.Winner == nil || match.Winner.ID != winner.ID {
-					match.Winner = &winner
-				}
-			}
-
-			// bye
-			if matchIn.Bye != nil {
-				bye, err := GetUser(*matchIn.Bye, db)
-				if err != nil {
-					return dayOut, err
-				}
-
-				if match.Bye == nil || match.Bye.ID != bye.ID {
-					match.Bye = &bye
-				}
-			}
-
-			err = db.Save(&match).Error
+			_, err := UpdateMatch(matchIn, db)
 			if err != nil {
 				return dayOut, err
 			}
@@ -746,4 +648,118 @@ func CreateMatch(matchInput *gqlModel.MatchInput, roundID string, orm *orm.ORM) 
 	}
 
 	return newMatch, nil
+}
+
+func UpdateMatch(input *gqlModel.MatchInput, db *gorm.DB) (event.Match, error) {
+	var matchOut event.Match
+
+	if input == nil {
+		return matchOut, errors.New("match input is invalid")
+	}
+
+	if input.ID == nil {
+		return matchOut, errors.New("match input id is missing")
+	}
+
+	match, err := GetMatchWithID(*input.ID, db)
+	if err != nil {
+		return matchOut, err
+	}
+
+	player1, err := GetUser(input.Player1, db)
+	if err != nil {
+		return matchOut, err
+	}
+
+	player2, err := GetUser(input.Player2, db)
+	if err != nil {
+		return matchOut, err
+	}
+
+	// match players
+	if match.Player1.ID != player1.ID {
+		match.Player1 = player1
+	}
+
+	if match.Player2.ID != player2.ID {
+		match.Player2 = player2
+	}
+
+	// player victory points
+	if input.Player1VictoryPoints != nil && match.Player1VictoryPoints != *input.Player1VictoryPoints {
+		match.Player1VictoryPoints = *input.Player1VictoryPoints
+	}
+
+	if input.Player2VictoryPoints != nil && match.Player2VictoryPoints != *input.Player2VictoryPoints {
+		match.Player2VictoryPoints = *input.Player2VictoryPoints
+	}
+
+	// player margin of victory
+	if input.Player1MarginOfVictory != nil && match.Player1MarginOfVictory != *input.Player1MarginOfVictory {
+		match.Player1MarginOfVictory = *input.Player1MarginOfVictory
+	}
+
+	if input.Player2MarginOfVictory != nil && match.Player2MarginOfVictory != *input.Player2MarginOfVictory {
+		match.Player2MarginOfVictory = *input.Player2MarginOfVictory
+	}
+
+	// blue player
+	if input.Blue != nil {
+		blue, err := GetUser(*input.Blue, db)
+		if err != nil {
+			return matchOut, err
+		}
+
+		if match.Blue == nil || match.Blue.ID != blue.ID {
+			match.Blue = &blue
+		}
+	}
+
+	// winner
+	if input.Winner != nil {
+		winner, err := GetUser(*input.Winner, db)
+		if err != nil {
+			return matchOut, err
+		}
+
+		if match.Winner == nil || match.Winner.ID != winner.ID {
+			match.Winner = &winner
+		}
+	}
+
+	// bye
+	if input.Bye != nil {
+		bye, err := GetUser(*input.Bye, db)
+		if err != nil {
+			return matchOut, err
+		}
+
+		if match.Bye == nil || match.Bye.ID != bye.ID {
+			match.Bye = &bye
+		}
+	}
+
+	err = db.Save(&match).Error
+	if err != nil {
+		return matchOut, err
+	}
+
+	return GetMatchWithID(*input.ID, db)
+}
+
+func DeleteMatch(id string, orm *orm.ORM) (bool, error) {
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		match, err := GetMatchWithID(id, tx)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Delete(&match).Error
+
+		return err
+	})
+
+	return err == nil, err
 }
