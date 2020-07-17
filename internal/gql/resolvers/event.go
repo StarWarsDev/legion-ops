@@ -246,7 +246,29 @@ func (r *mutationResolver) DeleteRound(ctx context.Context, roundID, eventID str
 
 // matches
 func (r *mutationResolver) CreateMatch(ctx context.Context, matchInput models.MatchInput, roundID, eventID string) (*models.Match, error) {
-	panic("not yet implemented")
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot create match, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		log.Println(dbEvent.Organizer.Username, dbUser.Username)
+		return nil, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	newMatch, err := data.CreateMatch(&matchInput, roundID, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.GQLMatch(&newMatch), nil
 }
 
 func (r *mutationResolver) UpdateMatch(ctx context.Context, matchInput models.MatchInput, eventID string) (*models.Match, error) {
