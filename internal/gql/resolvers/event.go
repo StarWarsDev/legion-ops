@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/StarWarsDev/legion-ops/routes/middlewares"
@@ -169,7 +171,12 @@ func (r *mutationResolver) UpdateDay(ctx context.Context, dayInput models.EventD
 		return nil, fmt.Errorf("account is not authorized to modify event")
 	}
 
-	dbDay, err := data.UpdateDay(&dayInput, data.NewDB(r.ORM))
+	var dbDay event.Day
+	db := data.NewDB(r.ORM)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbDay, err = data.UpdateDay(&dayInput, tx)
+		return err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -272,9 +279,52 @@ func (r *mutationResolver) CreateMatch(ctx context.Context, matchInput models.Ma
 }
 
 func (r *mutationResolver) UpdateMatch(ctx context.Context, matchInput models.MatchInput, eventID string) (*models.Match, error) {
-	panic("not yet implemented")
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot update match, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		log.Println(dbEvent.Organizer.Username, dbUser.Username)
+		return nil, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	var dbMatch event.Match
+	db := data.NewDB(r.ORM)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbMatch, err = data.UpdateMatch(&matchInput, tx)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.GQLMatch(&dbMatch), nil
 }
 
 func (r *mutationResolver) DeleteMatch(ctx context.Context, matchID, eventID string) (bool, error) {
-	panic("not yet implemented")
+	// check authorization against event ownership
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return false, errors.New("cannot delete match, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return false, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return false, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	return data.DeleteMatch(matchID, r.ORM)
 }
