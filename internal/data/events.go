@@ -669,3 +669,81 @@ func DeleteRound(id string, orm *orm.ORM) (bool, error) {
 
 	return err == nil, err
 }
+
+// matches
+
+func CreateMatch(matchInput *gqlModel.MatchInput, roundID string, orm *orm.ORM) (event.Match, error) {
+	var newMatch event.Match
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		round, err := GetRoundWithID(roundID, tx)
+		if err != nil {
+			return err
+		}
+
+		p1, err := GetUser(matchInput.Player1, tx)
+		if err != nil {
+			return err
+		}
+
+		p2, err := GetUser(matchInput.Player2, tx)
+		if err != nil {
+			return err
+		}
+		newMatch = event.Match{
+			Player1: p1,
+			Player2: p2,
+			Round:   round,
+		}
+
+		if matchInput.Player1MarginOfVictory != nil {
+			newMatch.Player1MarginOfVictory = *matchInput.Player1MarginOfVictory
+		}
+
+		if matchInput.Player1VictoryPoints != nil {
+			newMatch.Player1VictoryPoints = *matchInput.Player1VictoryPoints
+		}
+
+		if matchInput.Player2VictoryPoints != nil {
+			newMatch.Player2VictoryPoints = *matchInput.Player2VictoryPoints
+		}
+
+		if matchInput.Player2MarginOfVictory != nil {
+			newMatch.Player2MarginOfVictory = *matchInput.Player2MarginOfVictory
+		}
+
+		if matchInput.Blue != nil && *matchInput.Blue != "" {
+			blue, err := GetUser(*matchInput.Blue, tx)
+			if err != nil {
+				return err
+			}
+			newMatch.Blue = &blue
+		}
+
+		if matchInput.Bye != nil && *matchInput.Bye != "" {
+			bye, err := GetUser(*matchInput.Bye, tx)
+			if err != nil {
+				return err
+			}
+			newMatch.Bye = &bye
+		}
+
+		if matchInput.Winner != nil && *matchInput.Winner != "" {
+			winner, err := GetUser(*matchInput.Winner, tx)
+			if err != nil {
+				return err
+			}
+			newMatch.Winner = &winner
+		}
+
+		// save the round
+		return tx.Create(&newMatch).Error
+	})
+
+	if err != nil {
+		return newMatch, err
+	}
+
+	return newMatch, nil
+}
