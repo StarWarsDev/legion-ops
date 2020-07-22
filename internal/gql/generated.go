@@ -98,7 +98,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Events    func(childComplexity int, user *string, max *int) int
+		Events    func(childComplexity int, user *string, max *int, eventType *models.EventType) int
 		MyProfile func(childComplexity int) int
 	}
 
@@ -130,7 +130,7 @@ type MutationResolver interface {
 	DeleteMatch(ctx context.Context, matchID string, eventID string) (bool, error)
 }
 type QueryResolver interface {
-	Events(ctx context.Context, user *string, max *int) ([]*models.Event, error)
+	Events(ctx context.Context, user *string, max *int, eventType *models.EventType) ([]*models.Event, error)
 	MyProfile(ctx context.Context) (*models.Profile, error)
 }
 
@@ -480,7 +480,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Events(childComplexity, args["user"].(*string), args["max"].(*int)), true
+		return e.complexity.Query.Events(childComplexity, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType)), true
 
 	case "Query.myProfile":
 		if e.complexity.Query.MyProfile == nil {
@@ -682,7 +682,7 @@ type Mutation {
 }
 
 type Query {
-    events(user: ID, max: Int=10): [Event!]!
+    events(user: ID, max: Int=10, eventType: EventType): [Event!]!
     myProfile: Profile!
 }
 
@@ -1008,6 +1008,14 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		}
 	}
 	args["max"] = arg1
+	var arg2 *models.EventType
+	if tmp, ok := rawArgs["eventType"]; ok {
+		arg2, err = ec.unmarshalOEventType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventType"] = arg2
 	return args, nil
 }
 
@@ -2544,7 +2552,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Events(rctx, args["user"].(*string), args["max"].(*int))
+		return ec.resolvers.Query().Events(rctx, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5624,6 +5632,30 @@ func (ec *executionContext) unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWar
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOEventType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx context.Context, v interface{}) (models.EventType, error) {
+	var res models.EventType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOEventType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx context.Context, sel ast.SelectionSet, v models.EventType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOEventType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx context.Context, v interface{}) (*models.EventType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOEventType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOEventType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx context.Context, sel ast.SelectionSet, v *models.EventType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
