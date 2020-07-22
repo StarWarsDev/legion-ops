@@ -19,7 +19,7 @@ import (
 )
 
 // Query
-func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, eventType *models.EventType) ([]*models.Event, error) {
 	var records []*models.Event
 
 	// set some defaults and upper limits
@@ -44,7 +44,9 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int) ([
 		}
 
 		for _, dbEvent := range dbRecords {
-			records = append(records, mapper.GQLEvent(&dbEvent))
+			if (eventType == nil) || (eventType != nil && dbEvent.Type == eventType.String()) {
+				records = append(records, mapper.GQLEvent(&dbEvent))
+			}
 		}
 
 		return nil

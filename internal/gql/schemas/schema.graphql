@@ -80,7 +80,7 @@ type Mutation {
 }
 
 type Query {
-    events(user: ID, max: Int=10): [Event!]!
+    events(user: ID, max: Int=10, eventType: EventType): [Event!]!
     myProfile: Profile!
 }
 
