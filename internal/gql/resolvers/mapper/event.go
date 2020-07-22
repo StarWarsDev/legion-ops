@@ -10,8 +10,8 @@ import (
 func GQLEvent(eventIn *event.Event) *models.Event {
 	eventOut := models.Event{
 		ID:        eventIn.ID.String(),
-		CreatedAt: time.Unix(eventIn.CreatedAt, 0).String(),
-		UpdatedAt: time.Unix(eventIn.UpdatedAt, 0).String(),
+		CreatedAt: time.Unix(eventIn.CreatedAt, 0).UTC().Format(time.RFC3339),
+		UpdatedAt: time.Unix(eventIn.UpdatedAt, 0).UTC().Format(time.RFC3339),
 		Name:      eventIn.Name,
 		Type:      models.EventType(eventIn.Type),
 		Organizer: GQLUser(&eventIn.Organizer),
@@ -38,12 +38,12 @@ func GQLEvent(eventIn *event.Event) *models.Event {
 
 func GQLEventDay(day *event.Day) *models.EventDay {
 	dayOut := models.EventDay{
-		CreatedAt: time.Unix(day.CreatedAt, 0).String(),
-		EndAt:     time.Unix(day.EndAt, 0).String(),
+		CreatedAt: time.Unix(day.CreatedAt, 0).UTC().Format(time.RFC3339),
+		EndAt:     time.Unix(day.EndAt, 0).UTC().Format(time.RFC3339),
 		ID:        day.ID.String(),
-		UpdatedAt: time.Unix(day.UpdatedAt, 0).String(),
+		UpdatedAt: time.Unix(day.UpdatedAt, 0).UTC().Format(time.RFC3339),
 		Rounds:    nil,
-		StartAt:   time.Unix(day.StartAt, 0).String(),
+		StartAt:   time.Unix(day.StartAt, 0).UTC().Format(time.RFC3339),
 	}
 
 	for _, round := range day.Rounds {
