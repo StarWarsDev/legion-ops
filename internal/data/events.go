@@ -3,6 +3,7 @@ package data
 import (
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -15,22 +16,104 @@ import (
 	"github.com/StarWarsDev/legion-ops/internal/orm"
 )
 
-func FindEvents(db *gorm.DB, max int, forUser *gqlModel.User) ([]event.Event, error) {
+func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string) ([]event.Event, error) {
 	var dbRecords []event.Event
 	var count int
+
+	var where []string
+	var params []interface{}
+
+	if eventType != nil {
+		where = append(where, "type = ?")
+		params = append(params, eventType.String())
+	}
+
+	if startsAfter != nil || endsBefore != nil {
+		ids, err := eventIdsInRange(db, startsAfter, endsBefore)
+		if err != nil {
+			return dbRecords, err
+		}
+
+		if len(ids) > 0 {
+			where = append(where, "id IN (?)")
+			params = append(params, ids)
+		}
+	}
+
 	err := db.
 		Set("gorm:auto_preload", true).
 		Select("*").
+		Where(strings.Join(where, " AND "), params...).
 		Limit(max).
 		Find(&dbRecords).
 		Count(&count).
 		Error
+
 	if err != nil {
 		log.Println(err)
 		return dbRecords, err
 	}
 
 	return dbRecords, nil
+}
+
+func eventIdsInRange(db *gorm.DB, startsAfter *string, endsBefore *string) ([]string, error) {
+	var ids []string
+
+	if startsAfter != nil && *startsAfter != "" && endsBefore == nil {
+		t, err := time.Parse(time.RFC3339, *startsAfter)
+		if err != nil {
+			return nil, err
+		}
+
+		var days []event.Day
+		err = db.Select("DISTINCT event_id").Where("start_at >= ?", t.Unix()).Find(&days).Error
+		if err != nil {
+			return nil, err
+		}
+		for _, day := range days {
+			ids = append(ids, day.EventID.String())
+		}
+	}
+
+	if endsBefore != nil && *endsBefore != "" && startsAfter == nil {
+		t, err := time.Parse(time.RFC3339, *endsBefore)
+		if err != nil {
+			return nil, err
+		}
+
+		var days []event.Day
+		err = db.Select("DISTINCT event_id").Where("end_at <= ?", t.Unix()).Find(&days).Error
+		if err != nil {
+			return nil, err
+		}
+		for _, day := range days {
+			ids = append(ids, day.EventID.String())
+		}
+	}
+
+	if startsAfter != nil && *startsAfter != "" && endsBefore != nil && *endsBefore != "" {
+		startT, err := time.Parse(time.RFC3339, *startsAfter)
+		if err != nil {
+			return nil, err
+		}
+
+		endT, err := time.Parse(time.RFC3339, *endsBefore)
+		if err != nil {
+			return nil, err
+		}
+
+		var days []event.Day
+		err = db.Select("DISTINCT event_id").Where("start_at >= ? AND end_at <= ?", startT.UTC().Unix(), endT.UTC().Unix()).Find(&days).Error
+		if err != nil {
+			return nil, err
+		}
+		for _, day := range days {
+			ids = append(ids, day.EventID.String())
+		}
+	}
+
+	return ids, nil
 }
 
 func GetEventWithID(eventID string, db *gorm.DB) (event.Event, error) {

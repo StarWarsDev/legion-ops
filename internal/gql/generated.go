@@ -98,7 +98,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Events    func(childComplexity int, user *string, max *int, eventType *models.EventType) int
+		Events    func(childComplexity int, user *string, max *int, eventType *models.EventType, startsAfter *string, endsBefore *string) int
 		MyProfile func(childComplexity int) int
 	}
 
@@ -130,7 +130,7 @@ type MutationResolver interface {
 	DeleteMatch(ctx context.Context, matchID string, eventID string) (bool, error)
 }
 type QueryResolver interface {
-	Events(ctx context.Context, user *string, max *int, eventType *models.EventType) ([]*models.Event, error)
+	Events(ctx context.Context, user *string, max *int, eventType *models.EventType, startsAfter *string, endsBefore *string) ([]*models.Event, error)
 	MyProfile(ctx context.Context) (*models.Profile, error)
 }
 
@@ -480,7 +480,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Events(childComplexity, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType)), true
+		return e.complexity.Query.Events(childComplexity, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType), args["startsAfter"].(*string), args["endsBefore"].(*string)), true
 
 	case "Query.myProfile":
 		if e.complexity.Query.MyProfile == nil {
@@ -682,7 +682,7 @@ type Mutation {
 }
 
 type Query {
-    events(user: ID, max: Int=10, eventType: EventType): [Event!]!
+    events(user: ID, max: Int=10, eventType: EventType, startsAfter: Date, endsBefore: Date): [Event!]!
     myProfile: Profile!
 }
 
@@ -1016,6 +1016,22 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		}
 	}
 	args["eventType"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["startsAfter"]; ok {
+		arg3, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["startsAfter"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["endsBefore"]; ok {
+		arg4, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["endsBefore"] = arg4
 	return args, nil
 }
 
@@ -2552,7 +2568,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Events(rctx, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType))
+		return ec.resolvers.Query().Events(rctx, args["user"].(*string), args["max"].(*int), args["eventType"].(*models.EventType), args["startsAfter"].(*string), args["endsBefore"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5612,6 +5628,29 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalODate2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
+}
+
+func (ec *executionContext) marshalODate2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalODate2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalODate2string(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalODate2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalODate2string(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx context.Context, v interface{}) ([]*models.EventDayInput, error) {
