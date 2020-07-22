@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
+	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
 
 	"github.com/jinzhu/gorm"
 
@@ -19,7 +20,7 @@ import (
 )
 
 // Query
-func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, eventType *models.EventType) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, eventType *models.EventType, startsAfter, endsBefore *string) ([]*models.Event, error) {
 	var records []*models.Event
 
 	// set some defaults and upper limits
@@ -33,20 +34,26 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 		max = &hardMax
 	}
 
-	if userID != nil && *userID != "" {
-		log.Println("Only getting records for the specified user")
-	}
-
 	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
-		dbRecords, err := data.FindEvents(tx, *max, nil)
+		var forUser *user.User
+
+		if userID != nil && *userID != "" {
+			log.Println("Only getting records for the specified user")
+			dbUser, err := data.GetUser(*userID, tx)
+			if err != nil {
+				return err
+			}
+
+			forUser = &dbUser
+		}
+
+		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore)
 		if err != nil {
 			return err
 		}
 
 		for _, dbEvent := range dbRecords {
-			if (eventType == nil) || (eventType != nil && dbEvent.Type == eventType.String()) {
-				records = append(records, mapper.GQLEvent(&dbEvent))
-			}
+			records = append(records, mapper.GQLEvent(&dbEvent))
 		}
 
 		return nil
