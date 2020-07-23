@@ -13,16 +13,17 @@ type Record interface {
 }
 
 type Event struct {
-	ID        string      `json:"id"`
-	CreatedAt string      `json:"createdAt"`
-	UpdatedAt string      `json:"updatedAt"`
-	Name      string      `json:"name"`
-	Type      EventType   `json:"type"`
-	Days      []*EventDay `json:"days"`
-	Organizer *User       `json:"organizer"`
-	HeadJudge *User       `json:"headJudge"`
-	Judges    []*User     `json:"judges"`
-	Players   []*User     `json:"players"`
+	ID          string      `json:"id"`
+	CreatedAt   string      `json:"createdAt"`
+	UpdatedAt   string      `json:"updatedAt"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Type        EventType   `json:"type"`
+	Days        []*EventDay `json:"days"`
+	Organizer   *User       `json:"organizer"`
+	HeadJudge   *User       `json:"headJudge"`
+	Judges      []*User     `json:"judges"`
+	Players     []*User     `json:"players"`
 }
 
 func (Event) IsRecord() {}
@@ -46,13 +47,14 @@ type EventDayInput struct {
 }
 
 type EventInput struct {
-	ID        *string          `json:"id"`
-	Name      string           `json:"name"`
-	Type      EventType        `json:"type"`
-	Days      []*EventDayInput `json:"days"`
-	HeadJudge *string          `json:"headJudge"`
-	Judges    []string         `json:"judges"`
-	Players   []string         `json:"players"`
+	ID          *string          `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Type        EventType        `json:"type"`
+	Days        []*EventDayInput `json:"days"`
+	HeadJudge   *string          `json:"headJudge"`
+	Judges      []string         `json:"judges"`
+	Players     []string         `json:"players"`
 }
 
 type Match struct {

@@ -20,6 +20,23 @@ import (
 )
 
 // Query
+
+func (r *queryResolver) Event(ctx context.Context, id string) (*models.Event, error) {
+	var eventOut *models.Event
+	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
+		dbEvent, err := data.GetEventWithID(id, tx)
+		if err != nil {
+			return err
+		}
+
+		eventOut = mapper.GQLEvent(&dbEvent)
+
+		return nil
+	})
+
+	return eventOut, err
+}
+
 func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, eventType *models.EventType, startsAfter, endsBefore *string) ([]*models.Event, error) {
 	var records []*models.Event
 

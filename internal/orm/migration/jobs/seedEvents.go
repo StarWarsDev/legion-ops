@@ -26,10 +26,11 @@ var SeedEvents *gormigrate.Migration = &gormigrate.Migration{
 			Username: secondUserUsername,
 		})
 		firstEvent := event.Event{
-			Name:      firstEventName,
-			Type:      gqlModel.EventTypeFfgop.String(),
-			Organizer: firstUser,
-			HeadJudge: &firstUser,
+			Name:        firstEventName,
+			Description: "Lets get ready to... Avoid line of sight and re-roll bad dice?",
+			Type:        gqlModel.EventTypeFfgop.String(),
+			Organizer:   firstUser,
+			HeadJudge:   &firstUser,
 			Players: []user.User{
 				firstUser,
 				secondUser,
