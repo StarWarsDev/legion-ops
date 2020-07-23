@@ -18,6 +18,7 @@ import (
 type Event struct {
 	ID          uuid.UUID   `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
 	Name        string      `gorm:"not null"`
+	Description string      `gorm:"not null;type:text;default:''"`
 	Type        string      `gorm:"not null"`
 	CreatedAt   int64       `gorm:"not null"`
 	UpdatedAt   int64       `gorm:"not null"`

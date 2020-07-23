@@ -166,9 +166,10 @@ func CreateEventWithInput(input *gqlModel.EventInput, organizer *user.User, orm 
 
 	// the organizer can only be set during create
 	dbEvent := event.Event{
-		Organizer: *organizer,
-		Name:      input.Name,
-		Type:      input.Type.String(),
+		Organizer:   *organizer,
+		Name:        input.Name,
+		Description: input.Description,
+		Type:        input.Type.String(),
 	}
 
 	err := db.Transaction(func(tx *gorm.DB) error {
@@ -305,6 +306,10 @@ func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event
 	err = db.Transaction(func(tx *gorm.DB) error {
 		if dbEvent.Name != input.Name {
 			dbEvent.Name = input.Name
+		}
+
+		if dbEvent.Description != input.Description {
+			dbEvent.Description = input.Description
 		}
 
 		if input.HeadJudge != nil {

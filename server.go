@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/gob"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -14,23 +13,34 @@ import (
 
 	"github.com/StarWarsDev/legion-ops/routes/gql"
 
-	"github.com/StarWarsDev/legion-ops/routes/login"
-
-	"github.com/StarWarsDev/legion-ops/routes/logout"
-
-	"github.com/StarWarsDev/legion-ops/routes/callback"
-
-	"github.com/StarWarsDev/legion-ops/routes/spa"
-
 	"github.com/gorilla/sessions"
 
 	"github.com/StarWarsDev/legion-ops/routes/middlewares"
 
-	"github.com/StarWarsDev/legion-ops/routes/user"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
+
+// CORS Middleware
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Set headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Next
+		next.ServeHTTP(w, r)
+		return
+	})
+}
 
 func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM) {
 	storeSalt := os.Getenv("STORE_SALT")
@@ -41,45 +51,16 @@ func StartServer(port, localFilePath string, wait time.Duration, dbORM *orm.ORM)
 	gob.Register(map[string]interface{}{})
 
 	middlewareFuncs := middlewares.New(store, dbORM)
-	callbackHandlers := callback.New(store)
 	graphqlHandlers := gql.New(store)
-	loginHandlers := login.New(store)
-	userHandlers := user.New(store)
 
 	n := negroni.Classic()
 	r := mux.NewRouter()
 
-	cors := handlers.CORS(
-		handlers.AllowedHeaders([]string{"content-type"}),
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowCredentials(),
-	)
-
-	r.Use(cors)
+	r.Use(CORS)
 	r.Use(middlewareFuncs.Authorize)
-
-	r.HandleFunc("/login", loginHandlers.HandleLogin)
-	r.HandleFunc("/logout", logout.Handler)
-	r.HandleFunc("/callback", callbackHandlers.HandleCallback)
 
 	r.Handle("/graphical", graphqlHandlers.GraphicalHandler("/graphql"))
 	r.Handle("/graphql", graphqlHandlers.GraphQLHandler(dbORM))
-
-	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
-
-	r.PathPrefix("/api/me").Handler(n.With(
-		negroni.HandlerFunc(middlewareFuncs.IsAuthenticated),
-		negroni.Wrap(http.HandlerFunc(userHandlers.ApiMeHandler)),
-	))
-
-	// this MUST be the final handler
-	spaHandler := spa.SPAHandler{
-		StaticPath: localFilePath,
-		IndexPath:  "index.html",
-	}
-	r.PathPrefix("/").Handler(spaHandler)
 
 	n.UseHandler(r)
 	srv := &http.Server{

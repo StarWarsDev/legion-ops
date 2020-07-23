@@ -28,6 +28,7 @@ type Event implements Record {
     createdAt: Date!
     updatedAt: Date!
     name: String!
+    description: String!
     type: EventType!
     days: [EventDay!]!
     organizer: User!
@@ -80,6 +81,7 @@ type Mutation {
 }
 
 type Query {
+    event(id: ID!): Event!
     events(user: ID, max: Int=10, eventType: EventType, startsAfter: Date, endsBefore: Date): [Event!]!
     myProfile: Profile!
 }
@@ -100,6 +102,7 @@ type User {
 input EventInput {
     id: ID
     name: String!
+    description: String!
     type: EventType!
     days: [EventDayInput!]
     headJudge: ID
