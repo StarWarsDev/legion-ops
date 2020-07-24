@@ -7,5 +7,12 @@
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="heroku:legion-ops (PRODUCTION!)" uuid="198a8be8-a28a-415d-adef-77b02e4737d3">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ec2-18-214-119-135.compute-1.amazonaws.com:5432/d14jqo2khiaofb</jdbc-url>
+      <time-zone>America/Los_Angeles</time-zone>
+    </data-source>
   </component>
 </project>

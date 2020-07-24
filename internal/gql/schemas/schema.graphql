@@ -38,16 +38,18 @@ type Event implements Record {
 }
 
 type EventDay implements Record{
+    id: ID!
     createdAt: Date!
     endAt: Date!
-    id: ID!
     updatedAt: Date!
     rounds: [Round!]!
     startAt: Date!
 }
 
-type Match {
+type Match implements Record {
     id: ID!
+    createdAt: Date!
+    updatedAt: Date!
     player1: User!
     player1VictoryPoints: Int!
     player1MarginOfVictory: Int!

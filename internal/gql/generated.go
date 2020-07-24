@@ -70,6 +70,7 @@ type ComplexityRoot struct {
 	Match struct {
 		Blue                   func(childComplexity int) int
 		Bye                    func(childComplexity int) int
+		CreatedAt              func(childComplexity int) int
 		ID                     func(childComplexity int) int
 		Player1                func(childComplexity int) int
 		Player1MarginOfVictory func(childComplexity int) int
@@ -77,6 +78,7 @@ type ComplexityRoot struct {
 		Player2                func(childComplexity int) int
 		Player2MarginOfVictory func(childComplexity int) int
 		Player2VictoryPoints   func(childComplexity int) int
+		UpdatedAt              func(childComplexity int) int
 		Winner                 func(childComplexity int) int
 	}
 
@@ -285,6 +287,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Match.Bye(childComplexity), true
 
+	case "Match.createdAt":
+		if e.complexity.Match.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Match.CreatedAt(childComplexity), true
+
 	case "Match.id":
 		if e.complexity.Match.ID == nil {
 			break
@@ -333,6 +342,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Match.Player2VictoryPoints(childComplexity), true
+
+	case "Match.updatedAt":
+		if e.complexity.Match.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Match.UpdatedAt(childComplexity), true
 
 	case "Match.winner":
 		if e.complexity.Match.Winner == nil {
@@ -662,16 +678,18 @@ type Event implements Record {
 }
 
 type EventDay implements Record{
+    id: ID!
     createdAt: Date!
     endAt: Date!
-    id: ID!
     updatedAt: Date!
     rounds: [Round!]!
     startAt: Date!
 }
 
-type Match {
+type Match implements Record {
     id: ID!
+    createdAt: Date!
+    updatedAt: Date!
     player1: User!
     player1VictoryPoints: Int!
     player1MarginOfVictory: Int!
@@ -1514,6 +1532,43 @@ func (ec *executionContext) _Event_players(ctx context.Context, field graphql.Co
 	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EventDay_id(ctx context.Context, field graphql.CollectedField, obj *models.EventDay) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EventDay",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EventDay_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.EventDay) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -1586,43 +1641,6 @@ func (ec *executionContext) _EventDay_endAt(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNDate2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EventDay_id(ctx context.Context, field graphql.CollectedField, obj *models.EventDay) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EventDay",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventDay_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.EventDay) (ret graphql.Marshaler) {
@@ -1771,6 +1789,80 @@ func (ec *executionContext) _Match_id(ctx context.Context, field graphql.Collect
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Match_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.Match) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Match",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Match_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.Match) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Match",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Match_player1(ctx context.Context, field graphql.CollectedField, obj *models.Match) (ret graphql.Marshaler) {
@@ -4439,6 +4531,13 @@ func (ec *executionContext) _Record(ctx context.Context, sel ast.SelectionSet, o
 			return graphql.Null
 		}
 		return ec._EventDay(ctx, sel, obj)
+	case models.Match:
+		return ec._Match(ctx, sel, &obj)
+	case *models.Match:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Match(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -4533,6 +4632,11 @@ func (ec *executionContext) _EventDay(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EventDay")
+		case "id":
+			out.Values[i] = ec._EventDay_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createdAt":
 			out.Values[i] = ec._EventDay_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4540,11 +4644,6 @@ func (ec *executionContext) _EventDay(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "endAt":
 			out.Values[i] = ec._EventDay_endAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "id":
-			out.Values[i] = ec._EventDay_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4574,7 +4673,7 @@ func (ec *executionContext) _EventDay(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var matchImplementors = []string{"Match"}
+var matchImplementors = []string{"Match", "Record"}
 
 func (ec *executionContext) _Match(ctx context.Context, sel ast.SelectionSet, obj *models.Match) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, matchImplementors)
@@ -4587,6 +4686,16 @@ func (ec *executionContext) _Match(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Match")
 		case "id":
 			out.Values[i] = ec._Match_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._Match_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Match_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
