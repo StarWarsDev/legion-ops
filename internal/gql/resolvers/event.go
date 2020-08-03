@@ -21,6 +21,21 @@ import (
 
 // Query
 
+func (r *queryResolver) CanModifyEvent(ctx context.Context, id string) (bool, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser == nil || dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return false, errors.New("cannot check event permission, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(id, data.NewDB(r.ORM))
+	if err != nil {
+		return false, err
+	}
+
+	return dbUser.ID == dbEvent.Organizer.ID, nil
+}
+
 func (r *queryResolver) Event(ctx context.Context, id string) (*models.Event, error) {
 	var eventOut *models.Event
 	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
@@ -110,7 +125,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, input models.EventIn
 	dbUser := middlewares.UserInContext(ctx)
 	if dbUser == nil || dbUser.Username == "" {
 		// username cannot be blank, return an error
-		return nil, errors.New("cannot create event, valid user not supplied")
+		return nil, errors.New("cannot update event, valid user not supplied")
 	}
 
 	dbEvent, err := data.GetEventWithID(*input.ID, data.NewDB(r.ORM))

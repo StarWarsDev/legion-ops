@@ -101,9 +101,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Event     func(childComplexity int, id string) int
-		Events    func(childComplexity int, user *string, max *int, eventType *models.EventType, startsAfter *string, endsBefore *string) int
-		MyProfile func(childComplexity int) int
+		CanModifyEvent func(childComplexity int, id string) int
+		Event          func(childComplexity int, id string) int
+		Events         func(childComplexity int, user *string, max *int, eventType *models.EventType, startsAfter *string, endsBefore *string) int
+		MyProfile      func(childComplexity int) int
 	}
 
 	Round struct {
@@ -136,6 +137,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Event(ctx context.Context, id string) (*models.Event, error)
 	Events(ctx context.Context, user *string, max *int, eventType *models.EventType, startsAfter *string, endsBefore *string) ([]*models.Event, error)
+	CanModifyEvent(ctx context.Context, id string) (bool, error)
 	MyProfile(ctx context.Context) (*models.Profile, error)
 }
 
@@ -496,6 +498,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.Account(childComplexity), true
 
+	case "Query.canModifyEvent":
+		if e.complexity.Query.CanModifyEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_canModifyEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CanModifyEvent(childComplexity, args["id"].(string)), true
+
 	case "Query.event":
 		if e.complexity.Query.Event == nil {
 			break
@@ -725,6 +739,7 @@ type Mutation {
 type Query {
     event(id: ID!): Event!
     events(user: ID, max: Int=10, eventType: EventType, startsAfter: Date, endsBefore: Date): [Event!]!
+    canModifyEvent(id: ID!): Boolean!
     myProfile: Profile!
 }
 
@@ -1029,6 +1044,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_canModifyEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -2796,6 +2825,50 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEvent2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_canModifyEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_canModifyEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CanModifyEvent(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_myProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4892,6 +4965,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_events(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "canModifyEvent":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_canModifyEvent(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -85,6 +85,7 @@ type Mutation {
 type Query {
     event(id: ID!): Event!
     events(user: ID, max: Int=10, eventType: EventType, startsAfter: Date, endsBefore: Date): [Event!]!
+    canModifyEvent(id: ID!): Boolean!
     myProfile: Profile!
 }
 
