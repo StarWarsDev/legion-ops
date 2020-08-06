@@ -88,7 +88,10 @@ type MatchInput struct {
 }
 
 type Profile struct {
-	Account *User `json:"account"`
+	Account             *User    `json:"account"`
+	OrganizedEvents     []*Event `json:"organizedEvents"`
+	JudgingEvents       []*Event `json:"judgingEvents"`
+	ParticipatingEvents []*Event `json:"participatingEvents"`
 }
 
 type Round struct {
