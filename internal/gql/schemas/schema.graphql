@@ -11,6 +11,9 @@ interface Record {
 
 type Profile {
     account: User!
+    organizedEvents: [Event!]!
+    judgingEvents: [Event!]!
+    participatingEvents: [Event!]!
 }
 
 # EventType helps to indicate an event's type.

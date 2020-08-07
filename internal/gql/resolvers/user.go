@@ -21,5 +21,33 @@ func (r *queryResolver) MyProfile(ctx context.Context) (*models.Profile, error) 
 		Account: mapper.GQLUser(dbUser),
 	}
 
+	userID := dbUser.ID.String()
+	events, err := r.Events(ctx, &userID, nil, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, event := range events {
+		if event.Organizer.ID == userID {
+			profile.OrganizedEvents = append(profile.OrganizedEvents, event)
+		}
+
+		if event.HeadJudge != nil && event.HeadJudge.ID == userID {
+			profile.JudgingEvents = append(profile.JudgingEvents, event)
+		}
+
+		for _, judge := range event.Judges {
+			if judge != nil && judge.ID == userID {
+				profile.JudgingEvents = append(profile.JudgingEvents, event)
+			}
+		}
+
+		for _, player := range event.Players {
+			if player != nil && player.ID == userID {
+				profile.ParticipatingEvents = append(profile.ParticipatingEvents, event)
+			}
+		}
+	}
+
 	return &profile, nil
 }
