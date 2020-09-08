@@ -19,6 +19,7 @@ type Event struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
 	Type        EventType   `json:"type"`
+	Published   bool        `json:"published"`
 	Days        []*EventDay `json:"days"`
 	Organizer   *User       `json:"organizer"`
 	HeadJudge   *User       `json:"headJudge"`
@@ -51,6 +52,7 @@ type EventInput struct {
 	Name        string           `json:"name"`
 	Description string           `json:"description"`
 	Type        EventType        `json:"type"`
+	Published   *bool            `json:"published"`
 	Days        []*EventDayInput `json:"days"`
 	HeadJudge   *string          `json:"headJudge"`
 	Judges      []string         `json:"judges"`

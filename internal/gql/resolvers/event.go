@@ -69,17 +69,20 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
 		var forUser *user.User
 
+		onlyPublishedEvents := true
+
 		if userID != nil && *userID != "" {
-			log.Println("Only getting records for the specified user")
+			log.Println("Only getting records for the specified user", *userID)
 			dbUser, err := data.GetUser(*userID, tx)
 			if err != nil {
 				return err
 			}
 
 			forUser = &dbUser
+			onlyPublishedEvents = false
 		}
 
-		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore)
+		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore, onlyPublishedEvents)
 		if err != nil {
 			return err
 		}
@@ -164,6 +167,58 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 	}
 
 	return data.DeleteEventWithID(eventID, r.ORM)
+}
+
+func (r *mutationResolver) PublishEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot publish event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return nil, fmt.Errorf("account is not authorized to publish event")
+	}
+
+	dbEvent, err = data.PublishEventWithID(eventID, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&dbEvent)
+
+	return eventOut, nil
+}
+
+func (r *mutationResolver) UnpublishEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot unpublish event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return nil, fmt.Errorf("account is not authorized to unpublish event")
+	}
+
+	dbEvent, err = data.UnpublishEventWithID(eventID, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&dbEvent)
+
+	return eventOut, nil
 }
 
 // days

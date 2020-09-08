@@ -16,12 +16,17 @@ import (
 	"github.com/StarWarsDev/legion-ops/internal/orm"
 )
 
-func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string) ([]event.Event, error) {
+func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string, onlyPublished bool) ([]event.Event, error) {
 	var dbRecords []event.Event
 	var count int
 
 	var where []string
 	var params []interface{}
+
+	if onlyPublished {
+		where = append(where, "published = ?")
+		params = append(params, onlyPublished)
+	}
 
 	if eventType != nil {
 		where = append(where, "type = ?")
@@ -312,6 +317,10 @@ func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event
 			dbEvent.Description = input.Description
 		}
 
+		if input.Published != nil && dbEvent.Published != *input.Published {
+			dbEvent.Published = *input.Published
+		}
+
 		if input.HeadJudge != nil {
 			if (dbEvent.HeadJudge == nil) || (dbEvent.HeadJudge != nil && dbEvent.HeadJudge.ID.String() != *input.HeadJudge) {
 				headJudge, err := GetUser(*input.HeadJudge, tx)
@@ -391,6 +400,60 @@ func DeleteEventWithID(id string, orm *orm.ORM) (bool, error) {
 	})
 
 	return err == nil, err
+}
+
+func PublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	dbEvent, err := GetEventWithID(id, db)
+	if err != nil {
+		return dbEvent, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbEvent.Published = true
+		err = tx.Save(&dbEvent).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return dbEvent, err
+	}
+
+	dbEvent, err = GetEventWithID(id, db)
+
+	return dbEvent, err
+}
+
+func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	dbEvent, err := GetEventWithID(id, db)
+	if err != nil {
+		return dbEvent, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbEvent.Published = false
+		err = tx.Save(&dbEvent).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return dbEvent, err
+	}
+
+	dbEvent, err = GetEventWithID(id, db)
+
+	return dbEvent, err
 }
 
 // days
