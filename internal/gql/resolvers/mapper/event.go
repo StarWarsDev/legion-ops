@@ -15,6 +15,7 @@ func GQLEvent(eventIn *event.Event) *models.Event {
 		Name:        eventIn.Name,
 		Description: eventIn.Description,
 		Type:        models.EventType(eventIn.Type),
+		Published:   eventIn.Published,
 		Organizer:   GQLUser(&eventIn.Organizer),
 	}
 

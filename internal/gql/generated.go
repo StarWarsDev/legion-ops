@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Organizer   func(childComplexity int) int
 		Players     func(childComplexity int) int
+		Published   func(childComplexity int) int
 		Type        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 	}
@@ -83,17 +84,19 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateDay   func(childComplexity int, input models.EventDayInput, eventID string) int
-		CreateEvent func(childComplexity int, input models.EventInput) int
-		CreateMatch func(childComplexity int, input models.MatchInput, roundID string, eventID string) int
-		CreateRound func(childComplexity int, input models.RoundInput, dayID string, eventID string) int
-		DeleteDay   func(childComplexity int, dayID string, eventID string) int
-		DeleteEvent func(childComplexity int, eventID string) int
-		DeleteMatch func(childComplexity int, matchID string, eventID string) int
-		DeleteRound func(childComplexity int, roundID string, eventID string) int
-		UpdateDay   func(childComplexity int, input models.EventDayInput, eventID string) int
-		UpdateEvent func(childComplexity int, input models.EventInput) int
-		UpdateMatch func(childComplexity int, input models.MatchInput, eventID string) int
+		CreateDay      func(childComplexity int, input models.EventDayInput, eventID string) int
+		CreateEvent    func(childComplexity int, input models.EventInput) int
+		CreateMatch    func(childComplexity int, input models.MatchInput, roundID string, eventID string) int
+		CreateRound    func(childComplexity int, input models.RoundInput, dayID string, eventID string) int
+		DeleteDay      func(childComplexity int, dayID string, eventID string) int
+		DeleteEvent    func(childComplexity int, eventID string) int
+		DeleteMatch    func(childComplexity int, matchID string, eventID string) int
+		DeleteRound    func(childComplexity int, roundID string, eventID string) int
+		PublishEvent   func(childComplexity int, eventID string) int
+		UnpublishEvent func(childComplexity int, eventID string) int
+		UpdateDay      func(childComplexity int, input models.EventDayInput, eventID string) int
+		UpdateEvent    func(childComplexity int, input models.EventInput) int
+		UpdateMatch    func(childComplexity int, input models.MatchInput, eventID string) int
 	}
 
 	Profile struct {
@@ -128,6 +131,8 @@ type MutationResolver interface {
 	CreateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
 	UpdateEvent(ctx context.Context, input models.EventInput) (*models.Event, error)
 	DeleteEvent(ctx context.Context, eventID string) (bool, error)
+	PublishEvent(ctx context.Context, eventID string) (*models.Event, error)
+	UnpublishEvent(ctx context.Context, eventID string) (*models.Event, error)
 	CreateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
 	UpdateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
 	DeleteDay(ctx context.Context, dayID string, eventID string) (bool, error)
@@ -221,6 +226,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Players(childComplexity), true
+
+	case "Event.published":
+		if e.complexity.Event.Published == nil {
+			break
+		}
+
+		return e.complexity.Event.Published(childComplexity), true
 
 	case "Event.type":
 		if e.complexity.Event.Type == nil {
@@ -457,6 +469,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteRound(childComplexity, args["roundID"].(string), args["eventID"].(string)), true
+
+	case "Mutation.publishEvent":
+		if e.complexity.Mutation.PublishEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_publishEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PublishEvent(childComplexity, args["eventId"].(string)), true
+
+	case "Mutation.unpublishEvent":
+		if e.complexity.Mutation.UnpublishEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_unpublishEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UnpublishEvent(childComplexity, args["eventId"].(string)), true
 
 	case "Mutation.updateDay":
 		if e.complexity.Mutation.UpdateDay == nil {
@@ -711,6 +747,7 @@ type Event implements Record {
     name: String!
     description: String!
     type: EventType!
+    published: Boolean!
     days: [EventDay!]!
     organizer: User!
     headJudge: User
@@ -747,6 +784,8 @@ type Mutation {
     createEvent(input: EventInput!): Event!
     updateEvent(input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
+    publishEvent(eventId: ID!): Event!
+    unpublishEvent(eventId: ID!): Event!
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
@@ -788,6 +827,7 @@ input EventInput {
     name: String!
     description: String!
     type: EventType!
+    published: Boolean
     days: [EventDayInput!]
     headJudge: ID
     judges: [ID!]
@@ -999,6 +1039,34 @@ func (ec *executionContext) field_Mutation_deleteRound_args(ctx context.Context,
 		}
 	}
 	args["eventID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_publishEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_unpublishEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
 	return args, nil
 }
 
@@ -1404,6 +1472,43 @@ func (ec *executionContext) _Event_type(ctx context.Context, field graphql.Colle
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEventType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Event_published(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Event",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Published, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_days(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
@@ -2375,6 +2480,94 @@ func (ec *executionContext) _Mutation_deleteEvent(ctx context.Context, field gra
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_publishEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_publishEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().PublishEvent(rctx, args["eventId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Event)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_unpublishEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_unpublishEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UnpublishEvent(rctx, args["eventId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Event)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createDay(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4594,6 +4787,12 @@ func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "published":
+			var err error
+			it.Published, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "days":
 			var err error
 			it.Days, err = ec.unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx, v)
@@ -4799,6 +4998,11 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "published":
+			out.Values[i] = ec._Event_published(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "days":
 			out.Values[i] = ec._Event_days(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4984,6 +5188,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteEvent":
 			out.Values[i] = ec._Mutation_deleteEvent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "publishEvent":
+			out.Values[i] = ec._Mutation_publishEvent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unpublishEvent":
+			out.Values[i] = ec._Mutation_unpublishEvent(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

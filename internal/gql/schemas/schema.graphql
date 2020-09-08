@@ -33,6 +33,7 @@ type Event implements Record {
     name: String!
     description: String!
     type: EventType!
+    published: Boolean!
     days: [EventDay!]!
     organizer: User!
     headJudge: User
@@ -69,6 +70,8 @@ type Mutation {
     createEvent(input: EventInput!): Event!
     updateEvent(input: EventInput!): Event!
     deleteEvent(eventId: ID!): Boolean!
+    publishEvent(eventId: ID!): Event!
+    unpublishEvent(eventId: ID!): Event!
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
@@ -110,6 +113,7 @@ input EventInput {
     name: String!
     description: String!
     type: EventType!
+    published: Boolean
     days: [EventDayInput!]
     headJudge: ID
     judges: [ID!]

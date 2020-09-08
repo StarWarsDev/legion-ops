@@ -69,6 +69,8 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 	err := data.NewDB(r.ORM).Transaction(func(tx *gorm.DB) error {
 		var forUser *user.User
 
+		onlyPublishedEvents := true
+
 		if userID != nil && *userID != "" {
 			log.Println("Only getting records for the specified user")
 			dbUser, err := data.GetUser(*userID, tx)
@@ -77,9 +79,10 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 			}
 
 			forUser = &dbUser
+			onlyPublishedEvents = false
 		}
 
-		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore)
+		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore, &onlyPublishedEvents)
 		if err != nil {
 			return err
 		}
@@ -164,6 +167,14 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID string) (boo
 	}
 
 	return data.DeleteEventWithID(eventID, r.ORM)
+}
+
+func (r *mutationResolver) PublishEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	return nil, nil
+}
+
+func (r *mutationResolver) UnpublishEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	return nil, nil
 }
 
 // days

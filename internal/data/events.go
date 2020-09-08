@@ -16,12 +16,17 @@ import (
 	"github.com/StarWarsDev/legion-ops/internal/orm"
 )
 
-func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string) ([]event.Event, error) {
+func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string, published *bool) ([]event.Event, error) {
 	var dbRecords []event.Event
 	var count int
 
 	var where []string
 	var params []interface{}
+
+	if published != nil && *published {
+		where = append(where, "published = ?")
+		params = append(params, *published)
+	}
 
 	if eventType != nil {
 		where = append(where, "type = ?")
