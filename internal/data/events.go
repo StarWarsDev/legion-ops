@@ -429,6 +429,33 @@ func PublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 	return dbEvent, err
 }
 
+func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	dbEvent, err := GetEventWithID(id, db)
+	if err != nil {
+		return dbEvent, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbEvent.Published = false
+		err = tx.Save(dbEvent).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return dbEvent, err
+	}
+
+	dbEvent, err = GetEventWithID(id, db)
+
+	return dbEvent, err
+}
+
 // days
 
 func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (event.Day, error) {

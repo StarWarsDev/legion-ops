@@ -196,7 +196,29 @@ func (r *mutationResolver) PublishEvent(ctx context.Context, eventID string) (*m
 }
 
 func (r *mutationResolver) UnpublishEvent(ctx context.Context, eventID string) (*models.Event, error) {
-	return nil, nil
+	dbUser := middlewares.UserInContext(ctx)
+	if dbUser.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot unpublish event, valid user not supplied")
+	}
+
+	dbEvent, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if dbEvent.Organizer.ID != dbUser.ID {
+		return nil, fmt.Errorf("account is not authorized to unpublish event")
+	}
+
+	dbEvent, err = data.UnpublishEventWithID(eventID, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&dbEvent)
+
+	return eventOut, nil
 }
 
 // days
