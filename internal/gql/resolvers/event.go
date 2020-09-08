@@ -72,7 +72,7 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 		onlyPublishedEvents := true
 
 		if userID != nil && *userID != "" {
-			log.Println("Only getting records for the specified user")
+			log.Println("Only getting records for the specified user", *userID)
 			dbUser, err := data.GetUser(*userID, tx)
 			if err != nil {
 				return err
@@ -82,7 +82,7 @@ func (r *queryResolver) Events(ctx context.Context, userID *string, max *int, ev
 			onlyPublishedEvents = false
 		}
 
-		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore, &onlyPublishedEvents)
+		dbRecords, err := data.FindEvents(tx, *max, forUser, eventType, startsAfter, endsBefore, onlyPublishedEvents)
 		if err != nil {
 			return err
 		}

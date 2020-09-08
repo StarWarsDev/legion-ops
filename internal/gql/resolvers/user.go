@@ -22,7 +22,8 @@ func (r *queryResolver) MyProfile(ctx context.Context) (*models.Profile, error) 
 	}
 
 	userID := dbUser.ID.String()
-	events, err := r.Events(ctx, &userID, nil, nil, nil, nil)
+	max := 100
+	events, err := r.Events(ctx, &userID, &max, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

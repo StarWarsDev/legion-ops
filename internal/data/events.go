@@ -16,16 +16,16 @@ import (
 	"github.com/StarWarsDev/legion-ops/internal/orm"
 )
 
-func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string, published *bool) ([]event.Event, error) {
+func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string, onlyPublished bool) ([]event.Event, error) {
 	var dbRecords []event.Event
 	var count int
 
 	var where []string
 	var params []interface{}
 
-	if published != nil && *published {
+	if onlyPublished {
 		where = append(where, "published = ?")
-		params = append(params, *published)
+		params = append(params, onlyPublished)
 	}
 
 	if eventType != nil {
@@ -412,7 +412,7 @@ func PublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		dbEvent.Published = true
-		err = tx.Save(dbEvent).Error
+		err = tx.Save(&dbEvent).Error
 		if err != nil {
 			return err
 		}
@@ -439,7 +439,7 @@ func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		dbEvent.Published = false
-		err = tx.Save(dbEvent).Error
+		err = tx.Save(&dbEvent).Error
 		if err != nil {
 			return err
 		}
