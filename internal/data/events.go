@@ -317,6 +317,10 @@ func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event
 			dbEvent.Description = input.Description
 		}
 
+		if input.Published != nil && dbEvent.Published != *input.Published {
+			dbEvent.Published = *input.Published
+		}
+
 		if input.HeadJudge != nil {
 			if (dbEvent.HeadJudge == nil) || (dbEvent.HeadJudge != nil && dbEvent.HeadJudge.ID.String() != *input.HeadJudge) {
 				headJudge, err := GetUser(*input.HeadJudge, tx)
@@ -396,6 +400,33 @@ func DeleteEventWithID(id string, orm *orm.ORM) (bool, error) {
 	})
 
 	return err == nil, err
+}
+
+func PublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	dbEvent, err := GetEventWithID(id, db)
+	if err != nil {
+		return dbEvent, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		dbEvent.Published = true
+		err = tx.Save(dbEvent).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return dbEvent, err
+	}
+
+	dbEvent, err = GetEventWithID(id, db)
+
+	return dbEvent, err
 }
 
 // days
