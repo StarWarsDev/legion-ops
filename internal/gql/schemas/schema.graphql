@@ -26,6 +26,16 @@ enum EventType {
     OTHER
 }
 
+# RegistrationType helps indicate how players are able to register for an event
+enum RegistrationType {
+    # Indicates registration is open to the public
+    OPEN
+    # Indicates registration is by invite only
+    INVITE
+    # Indicates that no new registrations will be allowed
+    CLOSED
+}
+
 type Event implements Record {
     id: ID!
     createdAt: Date!
@@ -34,6 +44,7 @@ type Event implements Record {
     description: String!
     type: EventType!
     published: Boolean!
+    registration: RegistrationType!
     days: [EventDay!]!
     organizer: User!
     headJudge: User
@@ -114,6 +125,7 @@ input EventInput {
     description: String!
     type: EventType!
     published: Boolean
+    registration: RegistrationType
     days: [EventDayInput!]
     headJudge: ID
     judges: [ID!]
