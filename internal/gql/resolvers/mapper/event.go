@@ -9,14 +9,15 @@ import (
 
 func GQLEvent(eventIn *event.Event) *models.Event {
 	eventOut := models.Event{
-		ID:          eventIn.ID.String(),
-		CreatedAt:   time.Unix(eventIn.CreatedAt, 0).UTC().Format(time.RFC3339),
-		UpdatedAt:   time.Unix(eventIn.UpdatedAt, 0).UTC().Format(time.RFC3339),
-		Name:        eventIn.Name,
-		Description: eventIn.Description,
-		Type:        models.EventType(eventIn.Type),
-		Published:   eventIn.Published,
-		Organizer:   GQLUser(&eventIn.Organizer),
+		ID:           eventIn.ID.String(),
+		CreatedAt:    time.Unix(eventIn.CreatedAt, 0).UTC().Format(time.RFC3339),
+		UpdatedAt:    time.Unix(eventIn.UpdatedAt, 0).UTC().Format(time.RFC3339),
+		Name:         eventIn.Name,
+		Description:  eventIn.Description,
+		Type:         models.EventType(eventIn.Type),
+		Registration: models.RegistrationType(eventIn.Registration),
+		Published:    eventIn.Published,
+		Organizer:    GQLUser(&eventIn.Organizer),
 	}
 
 	if eventIn.HeadJudge != nil {

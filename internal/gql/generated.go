@@ -45,18 +45,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Event struct {
-		CreatedAt   func(childComplexity int) int
-		Days        func(childComplexity int) int
-		Description func(childComplexity int) int
-		HeadJudge   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Judges      func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Organizer   func(childComplexity int) int
-		Players     func(childComplexity int) int
-		Published   func(childComplexity int) int
-		Type        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		Days         func(childComplexity int) int
+		Description  func(childComplexity int) int
+		HeadJudge    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Judges       func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Organizer    func(childComplexity int) int
+		Players      func(childComplexity int) int
+		Published    func(childComplexity int) int
+		Registration func(childComplexity int) int
+		Type         func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
 	}
 
 	EventDay struct {
@@ -233,6 +234,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Published(childComplexity), true
+
+	case "Event.registration":
+		if e.complexity.Event.Registration == nil {
+			break
+		}
+
+		return e.complexity.Event.Registration(childComplexity), true
 
 	case "Event.type":
 		if e.complexity.Event.Type == nil {
@@ -740,6 +748,16 @@ enum EventType {
     OTHER
 }
 
+# RegistrationType helps indicate how players are able to register for an event
+enum RegistrationType {
+    # Indicates registration is open to the public
+    OPEN
+    # Indicates registration is by invite only
+    INVITE
+    # Indicates that no new registrations will be allowed
+    CLOSED
+}
+
 type Event implements Record {
     id: ID!
     createdAt: Date!
@@ -748,6 +766,7 @@ type Event implements Record {
     description: String!
     type: EventType!
     published: Boolean!
+    registration: RegistrationType!
     days: [EventDay!]!
     organizer: User!
     headJudge: User
@@ -828,6 +847,7 @@ input EventInput {
     description: String!
     type: EventType!
     published: Boolean
+    registration: RegistrationType
     days: [EventDayInput!]
     headJudge: ID
     judges: [ID!]
@@ -1509,6 +1529,43 @@ func (ec *executionContext) _Event_published(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Event_registration(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Event",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Registration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.RegistrationType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNRegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_days(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
@@ -4793,6 +4850,12 @@ func (ec *executionContext) unmarshalInputEventInput(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "registration":
+			var err error
+			it.Registration, err = ec.unmarshalORegistrationType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "days":
 			var err error
 			it.Days, err = ec.unmarshalOEventDayInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEventDayInputᚄ(ctx, v)
@@ -5000,6 +5063,11 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "published":
 			out.Values[i] = ec._Event_published(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "registration":
+			out.Values[i] = ec._Event_registration(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5961,6 +6029,15 @@ func (ec *executionContext) marshalNProfile2ᚖgithubᚗcomᚋStarWarsDevᚋlegi
 	return ec._Profile(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNRegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, v interface{}) (models.RegistrationType, error) {
+	var res models.RegistrationType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNRegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, sel ast.SelectionSet, v models.RegistrationType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNRound2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRound(ctx context.Context, sel ast.SelectionSet, v models.Round) graphql.Marshaler {
 	return ec._Round(ctx, sel, &v)
 }
@@ -6501,6 +6578,30 @@ func (ec *executionContext) unmarshalOMatchInput2ᚕᚖgithubᚗcomᚋStarWarsDe
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalORegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, v interface{}) (models.RegistrationType, error) {
+	var res models.RegistrationType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalORegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, sel ast.SelectionSet, v models.RegistrationType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalORegistrationType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, v interface{}) (*models.RegistrationType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalORegistrationType2githubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalORegistrationType2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRegistrationType(ctx context.Context, sel ast.SelectionSet, v *models.RegistrationType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalORoundInput2ᚕᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐRoundInputᚄ(ctx context.Context, v interface{}) ([]*models.RoundInput, error) {
