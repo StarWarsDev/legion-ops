@@ -75,3 +75,12 @@ func (event *Event) Prepare() {
 	event.Name = html.EscapeString(strings.TrimSpace(event.Name))
 	event.Type = html.EscapeString(strings.TrimSpace(event.Type))
 }
+
+func (event *Event) ContainsPlayer(playerID uuid.UUID) bool {
+	for _, player := range event.Players {
+		if player.ID == playerID {
+			return true
+		}
+	}
+	return false
+}

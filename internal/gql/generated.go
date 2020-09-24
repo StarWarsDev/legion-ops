@@ -93,6 +93,8 @@ type ComplexityRoot struct {
 		DeleteEvent    func(childComplexity int, eventID string) int
 		DeleteMatch    func(childComplexity int, matchID string, eventID string) int
 		DeleteRound    func(childComplexity int, roundID string, eventID string) int
+		JoinEvent      func(childComplexity int, eventID string) int
+		LeaveEvent     func(childComplexity int, eventID string) int
 		PublishEvent   func(childComplexity int, eventID string) int
 		UnpublishEvent func(childComplexity int, eventID string) int
 		UpdateDay      func(childComplexity int, input models.EventDayInput, eventID string) int
@@ -134,6 +136,8 @@ type MutationResolver interface {
 	DeleteEvent(ctx context.Context, eventID string) (bool, error)
 	PublishEvent(ctx context.Context, eventID string) (*models.Event, error)
 	UnpublishEvent(ctx context.Context, eventID string) (*models.Event, error)
+	JoinEvent(ctx context.Context, eventID string) (*models.Event, error)
+	LeaveEvent(ctx context.Context, eventID string) (*models.Event, error)
 	CreateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
 	UpdateDay(ctx context.Context, input models.EventDayInput, eventID string) (*models.EventDay, error)
 	DeleteDay(ctx context.Context, dayID string, eventID string) (bool, error)
@@ -478,6 +482,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteRound(childComplexity, args["roundID"].(string), args["eventID"].(string)), true
 
+	case "Mutation.joinEvent":
+		if e.complexity.Mutation.JoinEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinEvent(childComplexity, args["eventId"].(string)), true
+
+	case "Mutation.leaveEvent":
+		if e.complexity.Mutation.LeaveEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_leaveEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LeaveEvent(childComplexity, args["eventId"].(string)), true
+
 	case "Mutation.publishEvent":
 		if e.complexity.Mutation.PublishEvent == nil {
 			break
@@ -805,6 +833,8 @@ type Mutation {
     deleteEvent(eventId: ID!): Boolean!
     publishEvent(eventId: ID!): Event!
     unpublishEvent(eventId: ID!): Event!
+    joinEvent(eventId: ID!): Event!
+    leaveEvent(eventId: ID!): Event!
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
@@ -1059,6 +1089,34 @@ func (ec *executionContext) field_Mutation_deleteRound_args(ctx context.Context,
 		}
 	}
 	args["eventID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_leaveEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["eventId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
 	return args, nil
 }
 
@@ -2610,6 +2668,94 @@ func (ec *executionContext) _Mutation_unpublishEvent(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UnpublishEvent(rctx, args["eventId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Event)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_joinEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_joinEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().JoinEvent(rctx, args["eventId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Event)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋStarWarsDevᚋlegionᚑopsᚋinternalᚋgqlᚋmodelsᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_leaveEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_leaveEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LeaveEvent(rctx, args["eventId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5266,6 +5412,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "unpublishEvent":
 			out.Values[i] = ec._Mutation_unpublishEvent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "joinEvent":
+			out.Values[i] = ec._Mutation_joinEvent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "leaveEvent":
+			out.Values[i] = ec._Mutation_leaveEvent(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

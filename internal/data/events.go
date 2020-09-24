@@ -456,6 +456,57 @@ func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 	return dbEvent, err
 }
 
+func AddPlayerToEvent(event *event.Event, player *user.User, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		event.Players = append(event.Players, *player)
+		err := tx.Save(event).Error
+		return err
+	})
+
+	if err != nil {
+		return *event, err
+	}
+
+	dbEvent, err := GetEventWithID(event.ID.String(), db)
+	return dbEvent, err
+}
+
+func RemovePlayerFromEvent(event *event.Event, player *user.User, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+	playerIndex := -1
+
+	for i, p := range event.Players {
+		if p.ID == player.ID {
+			playerIndex = i
+		}
+	}
+
+	if playerIndex < 0 {
+		return *event, errors.New("player not found in event")
+	}
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		event.Players = removePlayer(event.Players, playerIndex)
+		err := tx.Save(event).Error
+		return err
+	})
+
+	if err != nil {
+		return *event, err
+	}
+
+	dbEvent, err := GetEventWithID(event.ID.String(), db)
+	return dbEvent, err
+}
+
+func removePlayer(s []user.User, i int) []user.User {
+	s[i] = s[len(s)-1]
+	// We do not need to put s[i] at the end, as it will be discarded anyway
+	return s[:len(s)-1]
+}
+
 // days
 
 func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (event.Day, error) {

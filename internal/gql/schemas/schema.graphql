@@ -83,6 +83,8 @@ type Mutation {
     deleteEvent(eventId: ID!): Boolean!
     publishEvent(eventId: ID!): Event!
     unpublishEvent(eventId: ID!): Event!
+    joinEvent(eventId: ID!): Event!
+    leaveEvent(eventId: ID!): Event!
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!

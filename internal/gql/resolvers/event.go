@@ -221,6 +221,62 @@ func (r *mutationResolver) UnpublishEvent(ctx context.Context, eventID string) (
 	return eventOut, nil
 }
 
+func (r *mutationResolver) JoinEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	user := middlewares.UserInContext(ctx)
+	if user == nil || user.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot update event, valid user not supplied")
+	}
+
+	event, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if event.Registration != models.RegistrationTypeOpen.String() {
+		return nil, errors.New("cannot join event because it is not open")
+	}
+
+	if event.ContainsPlayer(user.ID) {
+		return nil, errors.New("player has already joined event")
+	}
+
+	event, err = data.AddPlayerToEvent(&event, user, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&event)
+
+	return eventOut, nil
+}
+
+func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	user := middlewares.UserInContext(ctx)
+	if user == nil || user.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot update event, valid user not supplied")
+	}
+
+	event, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if !event.ContainsPlayer(user.ID) {
+		return nil, errors.New("player has not joined event")
+	}
+
+	event, err = data.RemovePlayerFromEvent(&event, user, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	eventOut := mapper.GQLEvent(&event)
+
+	return eventOut, nil
+}
+
 // days
 func (r *mutationResolver) CreateDay(ctx context.Context, dayInput models.EventDayInput, eventID string) (*models.EventDay, error) {
 	// check authorization against event ownership
