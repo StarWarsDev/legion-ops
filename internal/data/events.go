@@ -457,11 +457,17 @@ func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 }
 
 func AddPlayerToEvent(event *event.Event, player *user.User, orm *orm.ORM) (event.Event, error) {
+	println("AddPlayerToEvent", player.Username, event.Name)
 	db := NewDB(orm)
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		event.Players = append(event.Players, *player)
-		err := tx.Save(event).Error
+		err := tx.Model(&event).Association("Players").Replace(event.Players).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Save(event).Error
 		return err
 	})
 
@@ -488,8 +494,12 @@ func RemovePlayerFromEvent(event *event.Event, player *user.User, orm *orm.ORM) 
 	}
 
 	err := db.Transaction(func(tx *gorm.DB) error {
-		event.Players = removePlayer(event.Players, playerIndex)
-		err := tx.Save(event).Error
+		err := tx.Model(&event).Association("Players").Replace(removePlayer(event.Players, playerIndex)).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Save(event).Error
 		return err
 	})
 
