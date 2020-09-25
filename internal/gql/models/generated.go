@@ -13,18 +13,19 @@ type Record interface {
 }
 
 type Event struct {
-	ID          string      `json:"id"`
-	CreatedAt   string      `json:"createdAt"`
-	UpdatedAt   string      `json:"updatedAt"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Type        EventType   `json:"type"`
-	Published   bool        `json:"published"`
-	Days        []*EventDay `json:"days"`
-	Organizer   *User       `json:"organizer"`
-	HeadJudge   *User       `json:"headJudge"`
-	Judges      []*User     `json:"judges"`
-	Players     []*User     `json:"players"`
+	ID           string           `json:"id"`
+	CreatedAt    string           `json:"createdAt"`
+	UpdatedAt    string           `json:"updatedAt"`
+	Name         string           `json:"name"`
+	Description  string           `json:"description"`
+	Type         EventType        `json:"type"`
+	Published    bool             `json:"published"`
+	Registration RegistrationType `json:"registration"`
+	Days         []*EventDay      `json:"days"`
+	Organizer    *User            `json:"organizer"`
+	HeadJudge    *User            `json:"headJudge"`
+	Judges       []*User          `json:"judges"`
+	Players      []*User          `json:"players"`
 }
 
 func (Event) IsRecord() {}
@@ -48,15 +49,16 @@ type EventDayInput struct {
 }
 
 type EventInput struct {
-	ID          *string          `json:"id"`
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	Type        EventType        `json:"type"`
-	Published   *bool            `json:"published"`
-	Days        []*EventDayInput `json:"days"`
-	HeadJudge   *string          `json:"headJudge"`
-	Judges      []string         `json:"judges"`
-	Players     []string         `json:"players"`
+	ID           *string           `json:"id"`
+	Name         string            `json:"name"`
+	Description  string            `json:"description"`
+	Type         EventType         `json:"type"`
+	Published    *bool             `json:"published"`
+	Registration *RegistrationType `json:"registration"`
+	Days         []*EventDayInput  `json:"days"`
+	HeadJudge    *string           `json:"headJudge"`
+	Judges       []string          `json:"judges"`
+	Players      []string          `json:"players"`
 }
 
 type Match struct {
@@ -154,5 +156,48 @@ func (e *EventType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EventType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RegistrationType string
+
+const (
+	RegistrationTypeOpen   RegistrationType = "OPEN"
+	RegistrationTypeInvite RegistrationType = "INVITE"
+	RegistrationTypeClosed RegistrationType = "CLOSED"
+)
+
+var AllRegistrationType = []RegistrationType{
+	RegistrationTypeOpen,
+	RegistrationTypeInvite,
+	RegistrationTypeClosed,
+}
+
+func (e RegistrationType) IsValid() bool {
+	switch e {
+	case RegistrationTypeOpen, RegistrationTypeInvite, RegistrationTypeClosed:
+		return true
+	}
+	return false
+}
+
+func (e RegistrationType) String() string {
+	return string(e)
+}
+
+func (e *RegistrationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegistrationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RegistrationType", str)
+	}
+	return nil
+}
+
+func (e RegistrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

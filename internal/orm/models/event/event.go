@@ -16,20 +16,21 @@ import (
 )
 
 type Event struct {
-	ID          uuid.UUID   `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	Name        string      `gorm:"not null"`
-	Description string      `gorm:"not null;type:text;default:''"`
-	Type        string      `gorm:"not null"`
-	CreatedAt   int64       `gorm:"not null"`
-	UpdatedAt   int64       `gorm:"not null"`
-	Published   bool        `gorm:"not null;type:boolean;default:false"`
-	Organizer   user.User   `gorm:"not null;association_autoupdate:false;association_autocreate:false"`
-	OrganizerID uuid.UUID   `gorm:"not null"`
-	Players     []user.User `gorm:"many2many:event_players;association_autoupdate:false;association_autocreate:false"`
-	Judges      []user.User `gorm:"many2many:event_judges;association_autoupdate:false;association_autocreate:false"`
-	HeadJudge   *user.User  `gorm:"association_autoupdate:false;association_autocreate:false"`
-	HeadJudgeID *uuid.UUID
-	Days        []Day
+	ID           uuid.UUID   `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
+	Name         string      `gorm:"not null"`
+	Description  string      `gorm:"not null;type:text;default:''"`
+	Type         string      `gorm:"not null"`
+	CreatedAt    int64       `gorm:"not null"`
+	UpdatedAt    int64       `gorm:"not null"`
+	Published    bool        `gorm:"not null;type:boolean;default:false"`
+	Registration string      `gorm:"not null;default:'INVITE'"`
+	Organizer    user.User   `gorm:"not null;association_autoupdate:false;association_autocreate:false"`
+	OrganizerID  uuid.UUID   `gorm:"not null"`
+	Players      []user.User `gorm:"many2many:event_players;association_autoupdate:false;association_autocreate:false"`
+	Judges       []user.User `gorm:"many2many:event_judges;association_autoupdate:false;association_autocreate:false"`
+	HeadJudge    *user.User  `gorm:"association_autoupdate:false;association_autocreate:false"`
+	HeadJudgeID  *uuid.UUID
+	Days         []Day
 }
 
 func (event *Event) BeforeSave(scope *gorm.Scope) error {
@@ -73,4 +74,13 @@ func (event *Event) Prepare() {
 	event.UpdatedAt = time.Now().UTC().Unix()
 	event.Name = html.EscapeString(strings.TrimSpace(event.Name))
 	event.Type = html.EscapeString(strings.TrimSpace(event.Type))
+}
+
+func (event *Event) ContainsPlayer(playerID uuid.UUID) bool {
+	for _, player := range event.Players {
+		if player.ID == playerID {
+			return true
+		}
+	}
+	return false
 }
