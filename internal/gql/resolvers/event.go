@@ -277,6 +277,35 @@ func (r *mutationResolver) LeaveEvent(ctx context.Context, eventID string) (*mod
 	return eventOut, nil
 }
 
+func (r *mutationResolver) SetRegistration(ctx context.Context, eventID string, registrationType models.RegistrationType) (*models.Event, error) {
+	user := middlewares.UserInContext(ctx)
+	if user == nil || user.Username == "" {
+		// username cannot be blank, return an error
+		return nil, errors.New("cannot update event, valid user not supplied")
+	}
+
+	event, err := data.GetEventWithID(eventID, data.NewDB(r.ORM))
+	if err != nil {
+		return nil, err
+	}
+
+	if event.Organizer.ID != user.ID {
+		return nil, fmt.Errorf("account is not authorized to modify event")
+	}
+
+	// call data method
+	event, err = data.SetRegistrationTypeForEventWithID(eventID, registrationType, r.ORM)
+	if err != nil {
+		return nil, err
+	}
+
+	// map the event
+	eventOut := mapper.GQLEvent(&event)
+	
+	// return *event, error
+	return eventOut, nil
+}
+
 // days
 func (r *mutationResolver) CreateDay(ctx context.Context, dayInput models.EventDayInput, eventID string) (*models.EventDay, error) {
 	// check authorization against event ownership

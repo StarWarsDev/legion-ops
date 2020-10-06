@@ -10,13 +10,13 @@ import (
 
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
 
-	gqlModel "github.com/StarWarsDev/legion-ops/internal/gql/models"
+	"github.com/StarWarsDev/legion-ops/internal/gql/models"
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
 
 	"github.com/StarWarsDev/legion-ops/internal/orm"
 )
 
-func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *gqlModel.EventType, startsAfter, endsBefore *string, onlyPublished bool) ([]event.Event, error) {
+func FindEvents(db *gorm.DB, max int, forUser *user.User, eventType *models.EventType, startsAfter, endsBefore *string, onlyPublished bool) ([]event.Event, error) {
 	var dbRecords []event.Event
 	var count int
 
@@ -166,7 +166,7 @@ func GetMatchWithID(id string, db *gorm.DB) (event.Match, error) {
 	return match, err
 }
 
-func CreateEventWithInput(input *gqlModel.EventInput, organizer *user.User, orm *orm.ORM) (event.Event, error) {
+func CreateEventWithInput(input *models.EventInput, organizer *user.User, orm *orm.ORM) (event.Event, error) {
 	db := NewDB(orm)
 
 	// the organizer can only be set during create
@@ -299,7 +299,7 @@ func CreateEventWithInput(input *gqlModel.EventInput, organizer *user.User, orm 
 	return dbEvent, err
 }
 
-func UpdateEventWithInput(input *gqlModel.EventInput, orm *orm.ORM) (event.Event, error) {
+func UpdateEventWithInput(input *models.EventInput, orm *orm.ORM) (event.Event, error) {
 	db := NewDB(orm)
 
 	dbEvent, err := GetEventWithID(*input.ID, db)
@@ -456,6 +456,30 @@ func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 	return dbEvent, err
 }
 
+// SetRegistrationTypeForEventWithID sets the Registration field for a given Event (by ID)
+func SetRegistrationTypeForEventWithID(id string, registrationType models.RegistrationType, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	event, err := GetEventWithID(id, db)
+	if err != nil {
+		return event, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		event.Registration = registrationType.String()
+		err = tx.Save(&event).Error
+		return err
+	})
+
+	if err != nil {
+		return event, err
+	}
+
+	event, err = GetEventWithID(id, db)
+
+	return event, err
+}
+
 func AddPlayerToEvent(event *event.Event, player *user.User, orm *orm.ORM) (event.Event, error) {
 	println("AddPlayerToEvent", player.Username, event.Name)
 	db := NewDB(orm)
@@ -519,7 +543,7 @@ func removePlayer(s []user.User, i int) []user.User {
 
 // days
 
-func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (event.Day, error) {
+func CreateDay(dayInput *models.EventDayInput, eventID string, orm *orm.ORM) (event.Day, error) {
 	var eventDay event.Day
 	db := NewDB(orm)
 
@@ -616,7 +640,7 @@ func CreateDay(dayInput *gqlModel.EventDayInput, eventID string, orm *orm.ORM) (
 	return eventDay, err
 }
 
-func UpdateDay(input *gqlModel.EventDayInput, db *gorm.DB) (event.Day, error) {
+func UpdateDay(input *models.EventDayInput, db *gorm.DB) (event.Day, error) {
 	var dayOut event.Day
 
 	if input == nil {
@@ -684,7 +708,7 @@ func DeleteDay(id string, orm *orm.ORM) (bool, error) {
 
 // rounds
 
-func CreateRound(roundInput *gqlModel.RoundInput, dayID string, orm *orm.ORM) (event.Round, error) {
+func CreateRound(roundInput *models.RoundInput, dayID string, orm *orm.ORM) (event.Round, error) {
 	var newRound event.Round
 	db := NewDB(orm)
 
@@ -786,7 +810,7 @@ func DeleteRound(id string, orm *orm.ORM) (bool, error) {
 
 // matches
 
-func CreateMatch(matchInput *gqlModel.MatchInput, roundID string, orm *orm.ORM) (event.Match, error) {
+func CreateMatch(matchInput *models.MatchInput, roundID string, orm *orm.ORM) (event.Match, error) {
 	var newMatch event.Match
 	db := NewDB(orm)
 
@@ -862,7 +886,7 @@ func CreateMatch(matchInput *gqlModel.MatchInput, roundID string, orm *orm.ORM) 
 	return newMatch, nil
 }
 
-func UpdateMatch(input *gqlModel.MatchInput, db *gorm.DB) (event.Match, error) {
+func UpdateMatch(input *models.MatchInput, db *gorm.DB) (event.Match, error) {
 	var matchOut event.Match
 
 	if input == nil {

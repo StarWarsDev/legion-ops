@@ -85,6 +85,7 @@ type Mutation {
     unpublishEvent(eventId: ID!): Event!
     joinEvent(eventId: ID!): Event!
     leaveEvent(eventId: ID!): Event!
+    setRegistration(eventId: ID!, registrationType: RegistrationType!): Event!
 
     # days
     createDay(input: EventDayInput!, eventID: ID!): EventDay!
