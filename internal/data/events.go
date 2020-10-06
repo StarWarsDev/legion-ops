@@ -10,6 +10,7 @@ import (
 
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/user"
 
+	"github.com/StarWarsDev/legion-ops/internal/gql/models"
 	gqlModel "github.com/StarWarsDev/legion-ops/internal/gql/models"
 	"github.com/StarWarsDev/legion-ops/internal/orm/models/event"
 
@@ -454,6 +455,30 @@ func UnpublishEventWithID(id string, orm *orm.ORM) (event.Event, error) {
 	dbEvent, err = GetEventWithID(id, db)
 
 	return dbEvent, err
+}
+
+// SetRegistrationTypeForEventWithID sets the Registration field for a given Event (by ID)
+func SetRegistrationTypeForEventWithID(id string, registrationType models.RegistrationType, orm *orm.ORM) (event.Event, error) {
+	db := NewDB(orm)
+
+	event, err := GetEventWithID(id, db)
+	if err != nil {
+		return event, err
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		event.Registration = registrationType.String()
+		err = tx.Save(&event).Error
+		return err
+	})
+
+	if err != nil {
+		return event, err
+	}
+
+	event, err = GetEventWithID(id, db)
+
+	return event, err
 }
 
 func AddPlayerToEvent(event *event.Event, player *user.User, orm *orm.ORM) (event.Event, error) {
