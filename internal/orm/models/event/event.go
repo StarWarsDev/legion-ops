@@ -23,7 +23,7 @@ type Event struct {
 	CreatedAt    int64       `gorm:"not null"`
 	UpdatedAt    int64       `gorm:"not null"`
 	Published    bool        `gorm:"not null;type:boolean;default:false"`
-	Registration string      `gorm:"not null;default:'INVITE'"`
+	Registration string      `gorm:"not null;default:'CLOSED'"`
 	Organizer    user.User   `gorm:"not null;association_autoupdate:false;association_autocreate:false"`
 	OrganizerID  uuid.UUID   `gorm:"not null"`
 	Players      []user.User `gorm:"many2many:event_players;association_autoupdate:false;association_autocreate:false"`
