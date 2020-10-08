@@ -11,6 +11,7 @@ interface Record {
 
 type Profile {
     account: User!
+    username: String!
     organizedEvents: [Event!]!
     judgingEvents: [Event!]!
     participatingEvents: [Event!]!
@@ -119,7 +120,6 @@ type User {
     id: ID!
     name: String!
     picture: String
-    username: String!
 }
 
 input EventInput {

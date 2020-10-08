@@ -9,10 +9,10 @@ func GQLUser(userIn *user.User) *models.User {
 	if userIn == nil {
 		return nil
 	}
+	picture := userIn.Picture
 	return &models.User{
-		ID:       userIn.ID.String(),
-		Name:     userIn.DisplayName(),
-		Picture:  &userIn.Picture,
-		Username: userIn.Username,
+		ID:      userIn.ID.String(),
+		Name:    userIn.DisplayName(),
+		Picture: &picture,
 	}
 }

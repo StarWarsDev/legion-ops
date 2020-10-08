@@ -8,7 +8,8 @@ import (
 )
 
 func GQLEvent(eventIn *event.Event) *models.Event {
-	eventOut := models.Event{
+	organizer := eventIn.Organizer
+	eventOut  := models.Event{
 		ID:           eventIn.ID.String(),
 		CreatedAt:    time.Unix(eventIn.CreatedAt, 0).UTC().Format(time.RFC3339),
 		UpdatedAt:    time.Unix(eventIn.UpdatedAt, 0).UTC().Format(time.RFC3339),
@@ -17,7 +18,7 @@ func GQLEvent(eventIn *event.Event) *models.Event {
 		Type:         models.EventType(eventIn.Type),
 		Registration: models.RegistrationType(eventIn.Registration),
 		Published:    eventIn.Published,
-		Organizer:    GQLUser(&eventIn.Organizer),
+		Organizer:    GQLUser(&organizer),
 	}
 
 	if eventIn.HeadJudge != nil {
@@ -71,12 +72,14 @@ func GQLRound(round *event.Round) *models.Round {
 }
 
 func GQLMatch(match *event.Match) *models.Match {
+	player1 := match.Player1
+	player2 := match.Player2
 	return &models.Match{
 		ID:                     match.ID.String(),
-		Player1:                GQLUser(&match.Player1),
+		Player1:                GQLUser(&player1),
 		Player1VictoryPoints:   match.Player1VictoryPoints,
 		Player1MarginOfVictory: match.Player1MarginOfVictory,
-		Player2:                GQLUser(&match.Player2),
+		Player2:                GQLUser(&player2),
 		Player2VictoryPoints:   match.Player2VictoryPoints,
 		Player2MarginOfVictory: match.Player2MarginOfVictory,
 		Bye:                    GQLUser(match.Bye),
