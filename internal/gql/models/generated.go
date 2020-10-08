@@ -93,6 +93,7 @@ type MatchInput struct {
 
 type Profile struct {
 	Account             *User    `json:"account"`
+	Username            string   `json:"username"`
 	OrganizedEvents     []*Event `json:"organizedEvents"`
 	JudgingEvents       []*Event `json:"judgingEvents"`
 	ParticipatingEvents []*Event `json:"participatingEvents"`
@@ -110,10 +111,9 @@ type RoundInput struct {
 }
 
 type User struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Picture  *string `json:"picture"`
-	Username string  `json:"username"`
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Picture *string `json:"picture"`
 }
 
 type EventType string

@@ -18,7 +18,8 @@ func (r *queryResolver) MyProfile(ctx context.Context) (*models.Profile, error) 
 	}
 
 	profile := models.Profile{
-		Account: mapper.GQLUser(dbUser),
+		Account:  mapper.GQLUser(dbUser),
+		Username: dbUser.Username,
 	}
 
 	userID := dbUser.ID.String()
